@@ -20,6 +20,7 @@ impl Context {
 
 	pub fn resolve_reach(&self, r: &Reach) -> Result<Value> {
 		match r {
+			Reach::Value(val) => Ok(val.clone()),
 			Reach::Expr(expr) => self.resolve_expr(expr),
 			Reach::Named(name) => self
 				.variables
@@ -30,6 +31,7 @@ impl Context {
 	}
 	pub fn resolve_expr(&self, expr: &Expr) -> Result<Value> {
 		match expr {
+			Expr::Reach(r) => self.resolve_reach(r),
 			Expr::Add(a, b) => {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;

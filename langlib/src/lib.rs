@@ -25,18 +25,17 @@ impl Value {
 			(Value::Array(a), Value::Array(b)) => Some(Self::Array(
 				a.iter().cloned().chain(b.iter().cloned()).collect(), // a then b
 			)),
-			(Value::Array(a), new) => Some(Self::Array(
-				a.iter()
-					.cloned()
-					.chain(std::iter::once(new.clone()))
-					.collect(), // entire array and then the new element
-			)),
-			(new, Value::Array(a)) => Some(Self::Array(
-				std::iter::once(new.clone())
-					.chain(a.iter().cloned())
-					.collect(), // new element then the entire array
-			)),
-
+			// (Value::Array(a), new) => Some(Self::Array(
+			// 	a.iter()
+			// 		.cloned()
+			// 		.chain(std::iter::once(new.clone()))
+			// 		.collect(), // entire array and then the new element
+			// )),
+			// (new, Value::Array(a)) => Some(Self::Array(
+			// 	std::iter::once(new.clone())
+			// 		.chain(a.iter().cloned())
+			// 		.collect(), // new element then the entire array
+			// )),
 			_ => None,
 		}
 	}
@@ -44,12 +43,15 @@ impl Value {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
+	Reach(Reach),
+
 	Add(Reach, Reach),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 /// represents how we reach a variable
 pub enum Reach {
+	Value(Value),
 	Expr(Box<Expr>),
 	Named(String),
 }
