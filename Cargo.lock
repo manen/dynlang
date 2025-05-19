@@ -3,12 +3,27 @@
 version = 4
 
 [[package]]
+name = "basicparse"
+version = "0.1.0"
+dependencies = [
+ "iter_read_until",
+ "langlib",
+ "readuntil_ext",
+ "thiserror",
+]
+
+[[package]]
 name = "interpret"
 version = "0.1.0"
 dependencies = [
  "langlib",
  "thiserror",
 ]
+
+[[package]]
+name = "iter_read_until"
+version = "0.1.0"
+source = "git+https://github.com/manen/puzzle#81f29a82d2cf3d2eef806c6c97f42572b9e8313d"
 
 [[package]]
 name = "langlib"
@@ -30,6 +45,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1885c039570dc00dcb4ff087a89e185fd56bae234ddc7f056a945bf36467248d"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "readuntil_ext"
+version = "0.1.0"
+dependencies = [
+ "iter_read_until",
+ "thiserror",
 ]
 
 [[package]]

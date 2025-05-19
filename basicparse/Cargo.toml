@@ -1,0 +1,11 @@
+[package]
+name = "basicparse"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+langlib.workspace = true
+thiserror.workspace = true
+
+iter_read_until.workspace = true
+readuntil_ext.workspace = true

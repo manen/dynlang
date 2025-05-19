@@ -1,0 +1,8 @@
+[package]
+name = "readuntil_ext"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iter_read_until.workspace = true
+thiserror.workspace = true
