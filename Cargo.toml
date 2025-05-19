@@ -1,0 +1,9 @@
+[workspace]
+resolver = "3"
+members = [ "interpret","langlib"]
+
+[workspace.dependencies]
+langlib.path = "./langlib"
+
+
+thiserror = "2.0.12"
