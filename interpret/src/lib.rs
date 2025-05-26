@@ -38,12 +38,19 @@ impl Context {
 
 				a.add(&b).ok_or_else(|| Error::InvalidAddition { a, b })
 			}
+			Expr::CallFn(f) => {
+				let f = self.resolve_reach(f)?;
+				match f {
+					Value::Function(f) => self.clone().resolve_block(&f.block),
+					_ => Err(Error::NotAFunction(f)),
+				}
+			}
 		}
 	}
 
 	/// runs the given block as-is. does not isolate context at all so unless you wanna leak
 	/// internal variables you should probably use `context.clone().resolve_block()`
-	pub fn resolve_block(&mut self, block: &Block) -> Result<Option<Value>> {
+	pub fn resolve_block(&mut self, block: &Block) -> Result<Value> {
 		for stmt in block.iter() {
 			match stmt {
 				Statement::SetVariable(name, val) => {
@@ -53,13 +60,17 @@ impl Context {
 				Statement::DumpContext => {
 					println!("{:#?}", self.variables);
 				}
-				Statement::Return(None) => return Ok(None),
-				Statement::Return(Some(expr)) => {
+				Statement::Return(expr) => {
 					let val = self.resolve_expr(expr)?;
-					return Ok(Some(val));
+					return Ok(val);
 				}
 			}
 		}
-		Ok(None)
+		Ok(Value::None)
+	}
+
+	/// use for debugging only
+	pub fn exec<I: IntoIterator<Item = Statement>>(&mut self, block: I) -> Result<Value> {
+		self.resolve_block(&Block(block.into_iter().collect()))
 	}
 }

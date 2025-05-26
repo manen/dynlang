@@ -3,7 +3,7 @@ use crate::*;
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
 	SetVariable(String, Expr),
-	Return(Option<Expr>),
+	Return(Expr),
 	/// debug
 	DumpContext,
 }
@@ -16,6 +16,7 @@ impl Block {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+/// functions don't have args for now lol
 pub struct Function {
 	pub block: Block,
 }

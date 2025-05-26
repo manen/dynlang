@@ -9,8 +9,9 @@ pub enum Value {
 
 	String(String),
 	Array(Vec<Value>),
-
 	Function(Function),
+
+	None,
 }
 impl Value {
 	pub fn add(&self, rhs: &Self) -> Option<Self> {
@@ -46,6 +47,8 @@ pub enum Expr {
 	Reach(Reach),
 
 	Add(Reach, Reach),
+	/// calls the given function. no args for now
+	CallFn(Reach),
 }
 
 #[derive(Clone, Debug, PartialEq)]
