@@ -1,3 +1,27 @@
+use crate::*;
+
 #[derive(Clone, Debug, PartialEq)]
-/// unimplemented as fuck
-pub struct Function {}
+pub enum Statement {
+	SetVariable(String, Expr),
+	Return(Option<Expr>),
+	/// debug
+	DumpContext,
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct Block(pub Vec<Statement>);
+impl Block {
+	pub fn iter(&self) -> impl Iterator<Item = &Statement> {
+		self.0.iter()
+	}
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Function {
+	pub block: Block,
+}
+impl Function {
+	pub fn new<I: IntoIterator<Item = Statement>>(statements: I) -> Self {
+		let block = Block(statements.into_iter().collect());
+		Self { block }
+	}
+}

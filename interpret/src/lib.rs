@@ -40,4 +40,26 @@ impl Context {
 			}
 		}
 	}
+
+	/// runs the given block as-is. does not isolate context at all so unless you wanna leak
+	/// internal variables you should probably use `context.clone().resolve_block()`
+	pub fn resolve_block(&mut self, block: &Block) -> Result<Option<Value>> {
+		for stmt in block.iter() {
+			match stmt {
+				Statement::SetVariable(name, val) => {
+					let val = self.resolve_expr(val)?;
+					self.variables.insert(name.clone(), val);
+				}
+				Statement::DumpContext => {
+					println!("{:#?}", self.variables);
+				}
+				Statement::Return(None) => return Ok(None),
+				Statement::Return(Some(expr)) => {
+					let val = self.resolve_expr(expr)?;
+					return Ok(Some(val));
+				}
+			}
+		}
+		Ok(None)
+	}
 }
