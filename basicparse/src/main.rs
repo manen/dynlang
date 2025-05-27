@@ -38,7 +38,7 @@ fn from_stdin() {
 
 		io::stdout().flush().unwrap();
 		io::stdin().read_line(&mut line).unwrap();
-		println!("line read");
+		println!();
 
 		let tokenizer = Tokenizer::new(&line);
 		print!("[ ");

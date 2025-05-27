@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "iter_read_until"
 version = "0.1.0"
-source = "git+https://github.com/manen/puzzle#3256053a7f14c26189dd46e362d86d2eafdaff99"
+source = "git+https://github.com/manen/puzzle#ce3b60992f658471e40db9535b0d7333ccdaed7c"
 
 [[package]]
 name = "langlib"

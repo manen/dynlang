@@ -4,8 +4,6 @@ use iter_read_until::{IntoReader, StrReader};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Signal {
-	Word,
-
 	Eq,
 	Plus,
 	StrStart,
@@ -21,7 +19,6 @@ fn token_letters(c: u8) -> Option<Signal> {
 		b'(' => Some(Signal::ParensStart),
 		b'{' => Some(Signal::CurlyStart),
 		b'[' => Some(Signal::BracketStart),
-		b' ' => Some(Signal::Word),
 		_ => None,
 	}
 }
@@ -93,13 +90,16 @@ impl<'a> Tokenizer<'a> {
 							)
 						})?;
 					let tokenizer = Tokenizer::new(s);
+					let tokenizer = tokenizer.map(|a| {
+						println!("hello {a:?}");
+						a
+					});
 					let tokens = tokenizer.collect::<Result<Vec<_>, _>>()?;
 					Token::Parens(tokens)
 				}};
 			}
 
 			return Ok(match signal {
-				Signal::Word => return self.next_token(),
 				Signal::Eq => Token::Eq,
 				Signal::Plus => Token::Plus,
 				Signal::StrStart => {
@@ -124,17 +124,24 @@ impl<'a> Tokenizer<'a> {
 
 		let word = self
 			.reader
-			.read_until(|c| match token_letters(*c) {
-				Some(Signal::Word) => true,
-				Some(sig) => {
-					self.signal = Some(sig);
-					true
+			.read_until(|c| {
+				c.is_ascii_whitespace() ||
+				// aaf
+				match token_letters(*c) {
+					Some(sig) => {
+						self.signal = Some(sig);
+						true
+					}
+					_ => false,
 				}
-				_ => false,
 			})
 			.ok_or_end()?;
 		if word.len() == 0 {
-			return Err(Error::TokenizerFinished);
+			if self.reader.s.len() == self.reader.i {
+				return Err(Error::TokenizerFinished);
+			} else {
+				return self.next_token();
+			}
 		}
 
 		match word.trim() {
