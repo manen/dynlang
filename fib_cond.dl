@@ -1,0 +1,14 @@
+let fib = fn(n) {
+	if n == 0 {
+		0
+	} else {
+		if n == 1 {
+			1
+		} else {
+			let a = fib(n - 1)
+			let b = fib(n - 2)
+
+			a + b
+		}
+	}
+}

@@ -147,8 +147,40 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 		}
 	}
 	pub fn read_expr(&mut self) -> Result<Expr> {
-		let reach = self.read_reach()?;
-		self.expand_expr(reach.into_expr())
+		let peek = self.iter.peek();
+		let reach = match peek {
+			Some(Ok(Token::If)) => {
+				self.iter.next();
+				let cond = self
+					.read_expr()
+					.with_context(|| format!("while reading condition in if statement"))?;
+
+				let if_true = self
+					.read_block()
+					.with_context(|| format!("while reading if true branch in if statement"))?;
+
+				let if_false = match self.iter.peek() {
+					Some(Ok(Token::Else)) => {
+						self.iter.next();
+						let if_false = self.read_block().with_context(|| {
+							format!("while reading else branch in if statement")
+						})?;
+						Reach::Expr(Box::new(Expr::Block(if_false)))
+					}
+					_ => Reach::Value(Value::None),
+				};
+
+				Expr::Conditional {
+					condition: Reach::Expr(Box::new(cond)),
+					if_true: Reach::Expr(Box::new(Expr::Block(if_true))),
+					if_false,
+				}
+			}
+			_ => self.read_reach()?.into_expr(),
+		};
+		// above is if statement parsing
+
+		self.expand_expr(reach)
 	}
 	pub fn read_statement(&mut self) -> Result<Statement> {
 		let peek = self.iter.peek().ok_or(Error::EOFStatement)?.clone()?;

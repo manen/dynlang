@@ -34,6 +34,11 @@ fn token_letters(c: u8) -> Option<Signal> {
 pub enum Token {
 	/// `let`
 	Let,
+	/// `if`
+	If,
+	/// `else`
+	Else,
+
 	/// `=`
 	Eq,
 	/// `fn`
@@ -159,6 +164,8 @@ impl<'a> Tokenizer<'a> {
 		match word.trim() {
 			"let" => Ok(Token::Let),
 			"fn" => Ok(Token::Fn),
+			"if" => Ok(Token::If),
+			"else" => Ok(Token::Else),
 			ident => {
 				let number = ident
 					.chars()

@@ -107,6 +107,10 @@ impl Context {
 	pub fn resolve_expr(&self, expr: &Expr) -> Result<Value> {
 		match expr {
 			Expr::Reach(r) => self.resolve_reach(r),
+			Expr::Block(block) => {
+				let mut window = self.push_context();
+				window.resolve_block(block)
+			}
 			Expr::Add(a, b) => {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
@@ -151,6 +155,20 @@ impl Context {
 						self.call_fn(&f, args)
 					}
 					_ => Err(Error::NotAFunction(f)),
+				}
+			}
+			Expr::Conditional {
+				condition,
+				if_true,
+				if_false,
+			} => {
+				let condition = self.resolve_reach(condition)?;
+				if condition.is_true() {
+					let if_true = self.resolve_reach(if_true)?;
+					Ok(if_true)
+				} else {
+					let if_false = self.resolve_reach(if_false)?;
+					Ok(if_false)
 				}
 			}
 		}

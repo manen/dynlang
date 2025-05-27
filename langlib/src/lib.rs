@@ -15,6 +15,14 @@ pub enum Value {
 	None,
 }
 impl Value {
+	pub fn is_true(&self) -> bool {
+		match self {
+			Value::bool(true) => true,
+			&Value::i32(n) if n != 0 => true,
+			_ => false,
+		}
+	}
+
 	pub fn add(&self, rhs: &Self) -> Option<Self> {
 		match (self, rhs) {
 			// this match statement contains every addition operation that's legal
@@ -83,6 +91,7 @@ impl Value {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
 	Reach(Reach),
+	Block(Block),
 
 	// these return bools
 	Cmp(Reach, Reach),
@@ -90,6 +99,12 @@ pub enum Expr {
 	Gt(Reach, Reach),
 	// true if the second is larger
 	Lt(Reach, Reach),
+
+	Conditional {
+		condition: Reach,
+		if_true: Reach,
+		if_false: Reach,
+	},
 
 	// these return one of the types they are passed
 	Add(Reach, Reach),
