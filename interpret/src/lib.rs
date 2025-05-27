@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt::Display, rc::Rc};
 
 mod error;
 pub use error::*;
@@ -6,14 +6,14 @@ pub use error::*;
 use langlib::*;
 
 #[derive(Clone, Debug, Default)]
+pub struct ContextData {
+	variables: HashMap<String, Value>,
+}
+#[derive(Clone, Debug, Default)]
 pub struct Context {
 	ctx: Vec<Rc<RefCell<ContextData>>>,
 }
 
-#[derive(Clone, Debug, Default)]
-pub struct ContextData {
-	variables: HashMap<String, Value>,
-}
 impl Context {
 	pub fn new<I: IntoIterator<Item = (String, Value)>>(variables: I) -> Self {
 		let variables = variables.into_iter();
@@ -25,6 +25,15 @@ impl Context {
 		}
 	}
 
+	/// iterate over every variable available
+	pub fn for_variables(&self, mut f: impl FnMut(&String, &Value)) {
+		for ctx in &self.ctx {
+			let ctx = ctx.borrow();
+			for (name, val) in &ctx.variables {
+				f(name, val)
+			}
+		}
+	}
 	pub fn get_variable(&self, name: &str) -> Result<Value> {
 		for ctx in self.ctx.iter().rev() {
 			let ctx = ctx.borrow();
@@ -121,7 +130,7 @@ impl Context {
 				}
 
 				Statement::DumpContext => {
-					println!("{:#?}", self);
+					println!("{}", self);
 				}
 				Statement::Pause => {
 					std::io::stdin().lines().next();
@@ -134,5 +143,18 @@ impl Context {
 	/// use for debugging only
 	pub fn exec<I: IntoIterator<Item = Statement>>(&mut self, block: I) -> Result<Value> {
 		self.resolve_block(&Block(block.into_iter().collect()))
+	}
+}
+
+impl Display for Context {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "Context [")?;
+		for ctx in &self.ctx {
+			let ctx = ctx.borrow();
+			for (name, val) in &ctx.variables {
+				write!(f, "  {name}: {val:?}")?;
+			}
+		}
+		write!(f, "]")
 	}
 }
