@@ -23,6 +23,8 @@ only interpreted for now because that's easier
 - finally decouple what the interpreter thinks is a function and `langlib::Function`[*](#closures) \
 this would allow us to define builtin functions and shit which is pretty useful (and we could start doing some more interesting stuff)
 
+- order of operations (you can manually order your operations with parens in the meanwhile but ehhh still)
+
 ## see
 
 [fib_cond.dl](/fib_cond.dl) is a recursive implementation of a fibonacci generator \
