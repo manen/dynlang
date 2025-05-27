@@ -45,25 +45,44 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 			_ => unimplemented!("{a:?} as reach"),
 		}
 	}
-	pub fn read_expr(&mut self) -> Result<Expr> {
-		let reach = self.read_reach()?;
-		match self.iter.peek() {
+	fn expand_expr_internal(&mut self, expr: Expr) -> Result<Expr> {
+		let a = match self.iter.peek() {
 			Some(Ok(Token::Plus)) => {
 				self.iter.next();
+				let reach = expr.into_reach();
+
 				let b = self.read_expr()?;
 				let b = match b {
 					Expr::Reach(r) => r,
 					b => Reach::Expr(Box::new(b)),
 				};
 
-				Ok(Expr::Add(reach, b))
+				Expr::Add(reach, b)
 			}
 			Some(Ok(Token::Parens(l))) if l.len() == 0 => {
 				self.iter.next();
-				Ok(Expr::CallFn(reach))
+				Expr::CallFn(expr.into_reach())
 			}
-			None | Some(_) => Ok(Expr::Reach(reach)),
+			None | Some(_) => return Err(Error::ExprExpand(expr)),
+		};
+		Ok(a)
+	}
+	fn expand_expr(&mut self, expr: Expr) -> Result<Expr> {
+		match self.expand_expr_internal(expr) {
+			Err(Error::ExprExpand(r)) => {
+				// we can't expand further
+				Ok(r)
+			}
+			Err(err) => Err(err),
+			Ok(a) => {
+				// we could expand and we're gonna try to expand again
+				self.expand_expr(a)
+			}
 		}
+	}
+	pub fn read_expr(&mut self) -> Result<Expr> {
+		let reach = self.read_reach()?;
+		self.expand_expr(reach.into_expr())
 	}
 	pub fn read_statement(&mut self) -> Result<Statement> {
 		let peek = self.iter.peek().ok_or(Error::EOFStatement)?.clone()?;

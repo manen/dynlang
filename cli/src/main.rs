@@ -21,13 +21,29 @@ fn main() {
 		let out = eval(&file);
 		println!("{out:?}");
 	} else {
-		eprintln!("welcome to dynlang repl\n");
+		eprintln!(
+			"welcome to dynlang repl\nuse .import <file path> to import .dl files into the context\n"
+		);
 
 		let mut ctx = Context::default();
 		loop {
 			print!(" > ");
 			io::stdout().flush().unwrap();
 			let line = io::stdin().lines().next().unwrap().unwrap();
+
+			let line = if line.starts_with(".import ") {
+				let path = line.replace(".import ", "");
+				let file = match std::fs::read_to_string(&path) {
+					Ok(a) => a,
+					Err(err) => {
+						eprintln!("failed to read file: {err}");
+						continue;
+					}
+				};
+				file
+			} else {
+				line
+			};
 
 			match parse(&line) {
 				Ok(parsed) => match ctx.resolve_block(&Block(parsed)) {

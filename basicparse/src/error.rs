@@ -1,5 +1,7 @@
 use std::num::{ParseFloatError, ParseIntError};
 
+use langlib::{Expr, Reach};
+
 use crate::Token;
 
 #[derive(Clone, Debug, thiserror::Error)]
@@ -38,6 +40,9 @@ pub enum Error {
 	ExpectedFnDeclParens,
 	#[error("expected block/opening curly braces")]
 	ExpectedBlock,
+
+	#[error("unsuccessful expansion of expr (this error is usually handled internally)")]
+	ExprExpand(Expr),
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {

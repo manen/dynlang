@@ -1,0 +1,63 @@
+let fib0 = fn() {
+  0
+}
+let fib1 = fn() {
+  1
+}
+let fib2 = fn() {
+  fib0() + fib1()
+}
+let fib3 = fn() {
+  fib1() + fib2()
+}
+let fib4 = fn() {
+  fib2() + fib3()
+}
+let fib5 = fn() {
+  fib3() + fib4()
+}
+let fib6 = fn() {
+  fib4() + fib5()
+}
+let fib7 = fn() {
+  fib5() + fib6()
+}
+let fib8 = fn() {
+  fib6() + fib7()
+}
+let fib9 = fn() {
+  fib7() + fib8()
+}
+let fib10 = fn() {
+  fib8() + fib9()
+}
+let fib11 = fn() {
+  fib9() + fib10()
+}
+let fib12 = fn() {
+  fib10() + fib11()
+}
+let fib13 = fn() {
+  fib11() + fib12()
+}
+let fib14 = fn() {
+  fib12() + fib13()
+}
+let fib15 = fn() {
+  fib13() + fib14()
+}
+let fib16 = fn() {
+  fib14() + fib15()
+}
+let fib17 = fn() {
+  fib15() + fib16()
+}
+let fib18 = fn() {
+  fib16() + fib17()
+}
+let fib19 = fn() {
+  fib17() + fib18()
+}
+let fib20 = fn() {
+  fib18() + fib19()
+}

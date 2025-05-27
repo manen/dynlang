@@ -50,6 +50,14 @@ pub enum Expr {
 	/// calls the given function. no args for now
 	CallFn(Reach),
 }
+impl Expr {
+	pub fn into_reach(self) -> Reach {
+		match self {
+			Self::Reach(r) => r,
+			e => Reach::Expr(Box::new(e)),
+		}
+	}
+}
 
 #[derive(Clone, Debug, PartialEq)]
 /// represents how we reach a variable
@@ -57,4 +65,12 @@ pub enum Reach {
 	Value(Value),
 	Expr(Box<Expr>),
 	Named(String),
+}
+impl Reach {
+	pub fn into_expr(self) -> Expr {
+		match self {
+			Self::Expr(expr) => *expr,
+			reach => Expr::Reach(reach),
+		}
+	}
 }
