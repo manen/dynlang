@@ -119,6 +119,24 @@ impl Context {
 
 				a.sub(&b).ok_or_else(|| Error::InvalidSubtraction { a, b })
 			}
+			Expr::Cmp(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				Ok(Value::bool(a.custom_eq(&b)))
+			}
+			Expr::Gt(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				a.gt(&b).ok_or_else(|| Error::InvalidGt { a, b })
+			}
+			Expr::Lt(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				a.lt(&b).ok_or_else(|| Error::InvalidLt { a, b })
+			}
 			Expr::CallFn { f, args } => {
 				let f = self.resolve_reach(f)?;
 				match f {

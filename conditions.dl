@@ -1,7 +1,7 @@
-let i = 0
-
-let fib = fn() {
-	if i < 0 {
-
+let deal_w_age = fn(age) {
+	if age > 20 {
+		"old ass"
+	} else {
+		"youngin"
 	}
 }

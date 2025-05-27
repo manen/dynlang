@@ -9,6 +9,10 @@ pub enum Error {
 	InvalidAddition { a: Value, b: Value },
 	#[error("attempted invalid subtraction operation {a:?} - {b:?}")]
 	InvalidSubtraction { a: Value, b: Value },
+	#[error("attempted invalid greater than operation {a:?} > {b:?}")]
+	InvalidGt { a: Value, b: Value },
+	#[error("attempted invalid less than operation {a:?} < {b:?}")]
+	InvalidLt { a: Value, b: Value },
 	#[error("attempted to call a variable that isn't a function: {0:?}")]
 	NotAFunction(Value),
 

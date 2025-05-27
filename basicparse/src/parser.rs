@@ -16,7 +16,7 @@ impl<'a> Parser<Tokenizer<'a>> {
 		}
 	}
 }
-impl<I: Iterator<Item = Result<Token>>> Parser<I> {
+impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 	pub fn from_iter(iter: impl IntoIterator<IntoIter = I>) -> Self {
 		Self {
 			iter: iter.into_iter().peekable(),
@@ -79,6 +79,39 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 				let b = self.read_expr()?.into_reach();
 
 				Expr::Sub(reach, b)
+			}
+			Some(Ok(Token::Eq)) => {
+				let mut clone = self.clone();
+				clone.iter.next();
+				if let Some(Ok(Token::Eq)) = clone.iter.peek() {
+					self.iter.next();
+					self.iter.next();
+
+					let b = self
+						.read_expr()
+						.with_context(|| format!("while reading right side of equality check"))?;
+					Expr::Cmp(expr.into_reach(), b.into_reach())
+				} else {
+					return Err(Error::ExprExpand(expr)); // base case from outer match
+				}
+			}
+			Some(Ok(Token::Gt)) => {
+				self.iter.next();
+
+				let b = self
+					.read_expr()
+					.with_context(|| format!("while reading right side of greater than check"))?;
+
+				Expr::Gt(expr.into_reach(), b.into_reach())
+			}
+			Some(Ok(Token::Lt)) => {
+				self.iter.next();
+
+				let b = self
+					.read_expr()
+					.with_context(|| format!("while reading right side of less than check"))?;
+
+				Expr::Lt(expr.into_reach(), b.into_reach())
 			}
 			Some(Ok(Token::Parens(_))) => match self.iter.next() {
 				Some(Ok(Token::Parens(l))) => {
@@ -175,10 +208,10 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 	}
 }
 
-pub struct ParserStatements<I: Iterator<Item = Result<Token>>> {
+pub struct ParserStatements<I: Iterator<Item = Result<Token>> + Clone> {
 	parser: Parser<I>,
 }
-impl<I: Iterator<Item = Result<Token>>> Iterator for ParserStatements<I> {
+impl<I: Iterator<Item = Result<Token>> + Clone> Iterator for ParserStatements<I> {
 	type Item = Result<Statement>;
 
 	fn next(&mut self) -> Option<Self::Item> {

@@ -4,6 +4,7 @@ pub use func::*;
 #[derive(Clone, Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum Value {
+	bool(bool),
 	i32(i32),
 	f32(f32),
 
@@ -50,12 +51,47 @@ impl Value {
 			_ => None,
 		}
 	}
+	/// basically just PartialEq except it's lenient if it's the same but a different number type
+	pub fn custom_eq(&self, rhs: &Self) -> bool {
+		match (self, rhs) {
+			(Self::i32(a), Self::f32(b)) | (Self::f32(b), Self::i32(a)) => *a as f32 == *b,
+			(a, b) => a == b,
+		}
+	}
+	pub fn gt(&self, rhs: &Self) -> Option<Self> {
+		match (self, rhs) {
+			// this match statement contains every gt operation that's legal
+			(Value::i32(a), Value::i32(b)) => Some(Self::bool(*a > *b)),
+			(Value::f32(a), Value::f32(b)) => Some(Self::bool(*a > *b)),
+			(Value::i32(a), Value::f32(b)) => Some(Self::bool(*a as f32 > *b)),
+			(Value::f32(a), Value::i32(b)) => Some(Self::bool(*a > *b as f32)),
+			_ => None,
+		}
+	}
+	pub fn lt(&self, rhs: &Self) -> Option<Self> {
+		match (self, rhs) {
+			// this match statement contains every lt operation that's legal
+			(Value::i32(a), Value::i32(b)) => Some(Self::bool(*a < *b)),
+			(Value::f32(a), Value::f32(b)) => Some(Self::bool(*a < *b)),
+			(Value::i32(a), Value::f32(b)) => Some(Self::bool((*a as f32) < (*b))),
+			(Value::f32(a), Value::i32(b)) => Some(Self::bool(*a < *b as f32)),
+			_ => None,
+		}
+	}
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
 	Reach(Reach),
 
+	// these return bools
+	Cmp(Reach, Reach),
+	// true if the first is larger
+	Gt(Reach, Reach),
+	// true if the second is larger
+	Lt(Reach, Reach),
+
+	// these return one of the types they are passed
 	Add(Reach, Reach),
 	Sub(Reach, Reach),
 	/// calls the given function. no args for now
