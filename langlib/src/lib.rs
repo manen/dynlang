@@ -40,6 +40,16 @@ impl Value {
 			_ => None,
 		}
 	}
+	pub fn sub(&self, rhs: &Self) -> Option<Self> {
+		match (self, rhs) {
+			// this match statement contains every subtraction operation that's legal
+			(Value::i32(a), Value::i32(b)) => Some(Self::i32(*a - *b)),
+			(Value::f32(a), Value::f32(b)) => Some(Self::f32(*a - *b)),
+			(Value::i32(a), Value::f32(b)) => Some(Self::f32(*a as f32 - *b)),
+			(Value::f32(a), Value::i32(b)) => Some(Self::f32(*a - *b as f32)),
+			_ => None,
+		}
+	}
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -47,6 +57,7 @@ pub enum Expr {
 	Reach(Reach),
 
 	Add(Reach, Reach),
+	Sub(Reach, Reach),
 	/// calls the given function. no args for now
 	CallFn(Reach),
 }

@@ -6,6 +6,7 @@ use iter_read_until::{IntoReader, Reader, StrReader};
 enum Signal {
 	Eq,
 	Plus,
+	Minus,
 	StrStart,
 	ParensStart,
 	CurlyStart,
@@ -15,6 +16,7 @@ fn token_letters(c: u8) -> Option<Signal> {
 	match c {
 		b'=' => Some(Signal::Eq),
 		b'+' => Some(Signal::Plus),
+		b'-' => Some(Signal::Minus),
 		b'"' => Some(Signal::StrStart),
 		b'(' => Some(Signal::ParensStart),
 		b'{' => Some(Signal::CurlyStart),
@@ -33,6 +35,8 @@ pub enum Token {
 	Fn,
 	/// `+`
 	Plus,
+	/// `-`
+	Minus,
 
 	Ident(String),
 	/// number literal
@@ -98,6 +102,7 @@ impl<'a> Tokenizer<'a> {
 			return Ok(match signal {
 				Signal::Eq => Token::Eq,
 				Signal::Plus => Token::Plus,
+				Signal::Minus => Token::Minus,
 				Signal::StrStart => {
 					let s = self
 						.reader

@@ -113,6 +113,12 @@ impl Context {
 
 				a.add(&b).ok_or_else(|| Error::InvalidAddition { a, b })
 			}
+			Expr::Sub(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				a.sub(&b).ok_or_else(|| Error::InvalidSubtraction { a, b })
+			}
 			Expr::CallFn(f) => {
 				let f = self.resolve_reach(f)?;
 				match f {

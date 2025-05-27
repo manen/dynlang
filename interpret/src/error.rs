@@ -7,6 +7,8 @@ pub enum Error {
 
 	#[error("attempted invalid addition operation {a:?} + {b:?}")]
 	InvalidAddition { a: Value, b: Value },
+	#[error("attempted invalid subtraction operation {a:?} - {b:?}")]
+	InvalidSubtraction { a: Value, b: Value },
 	#[error("attempted to call a variable that isn't a function: {0:?}")]
 	NotAFunction(Value),
 

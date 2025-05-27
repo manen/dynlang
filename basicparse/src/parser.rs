@@ -51,13 +51,17 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 				self.iter.next();
 				let reach = expr.into_reach();
 
-				let b = self.read_expr()?;
-				let b = match b {
-					Expr::Reach(r) => r,
-					b => Reach::Expr(Box::new(b)),
-				};
+				let b = self.read_expr()?.into_reach();
 
 				Expr::Add(reach, b)
+			}
+			Some(Ok(Token::Minus)) => {
+				self.iter.next();
+
+				let reach = expr.into_reach();
+				let b = self.read_expr()?.into_reach();
+
+				Expr::Sub(reach, b)
 			}
 			Some(Ok(Token::Parens(l))) if l.len() == 0 => {
 				self.iter.next();
