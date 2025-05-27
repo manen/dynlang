@@ -4,6 +4,8 @@ pub enum Error {
 	Read(#[from] readuntil_ext::Error),
 	#[error("{context}:\n{err}")]
 	Context { context: String, err: Box<Self> },
+	#[error("tokenizer tokenized everything in its reader. this error is hidden most of the time")]
+	TokenizerFinished,
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {

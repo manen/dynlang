@@ -4,6 +4,8 @@ use iter_read_until::{IntoReader, StrReader};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Signal {
+	Word,
+
 	Eq,
 	Plus,
 	StrStart,
@@ -19,6 +21,7 @@ fn token_letters(c: u8) -> Option<Signal> {
 		b'(' => Some(Signal::ParensStart),
 		b'{' => Some(Signal::CurlyStart),
 		b'[' => Some(Signal::BracketStart),
+		b' ' => Some(Signal::Word),
 		_ => None,
 	}
 }
@@ -51,6 +54,7 @@ pub enum Token {
 #[derive(Copy, Clone, Debug)]
 pub struct Tokenizer<'a> {
 	reader: StrReader<'a>,
+	/// we use signal to store any additional information we need to take care of before reading from the reader
 	signal: Option<Signal>,
 }
 impl<'a> Tokenizer<'a> {
@@ -62,7 +66,6 @@ impl<'a> Tokenizer<'a> {
 	}
 
 	pub fn next_token(&mut self) -> Result<Token> {
-		println!("next token at {:?}", self.reader);
 		if let Some(signal) = self.signal.take() {
 			/// shared macro for all bracket types
 			macro_rules! encapsulating {
@@ -96,6 +99,7 @@ impl<'a> Tokenizer<'a> {
 			}
 
 			return Ok(match signal {
+				Signal::Word => return self.next_token(),
 				Signal::Eq => Token::Eq,
 				Signal::Plus => Token::Plus,
 				Signal::StrStart => {
@@ -120,17 +124,18 @@ impl<'a> Tokenizer<'a> {
 
 		let word = self
 			.reader
-			.read_until(|c| {
-				if let Some(sig) = token_letters(*c) {
+			.read_until(|c| match token_letters(*c) {
+				Some(Signal::Word) => true,
+				Some(sig) => {
 					self.signal = Some(sig);
 					true
-				} else {
-					false
 				}
+				_ => false,
 			})
 			.ok_or_end()?;
-
-		println!("{:?} => {word}", self.signal);
+		if word.len() == 0 {
+			return Err(Error::TokenizerFinished);
+		}
 
 		match word.trim() {
 			"let" => Ok(Token::Let),
@@ -152,6 +157,7 @@ impl<'a> Iterator for Tokenizer<'a> {
 				expected: _,
 				got: iter_read_until::Read::Finished,
 			})) => None,
+			Err(Error::TokenizerFinished) => None,
 			Err(err) => Some(Err(err)),
 		}
 	}
