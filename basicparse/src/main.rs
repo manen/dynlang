@@ -1,9 +1,8 @@
+use basicparse::*;
 use std::{
 	env,
 	io::{self, Write},
 };
-
-use basicparse::Tokenizer;
 
 fn main() {
 	if from_args().is_some() {
@@ -15,13 +14,20 @@ fn main() {
 fn from_args() -> Option<()> {
 	let mut args = env::args();
 	let _arg0 = args.next()?;
+
 	let rest = args.collect::<Vec<_>>().join(" ");
 	let rest = rest.trim();
 	if rest == "" {
 		return None;
 	}
 
-	let file = std::fs::read_to_string(&rest).expect("failed to open file");
+	let file = match std::fs::read_to_string(&rest) {
+		Err(err) => {
+			eprintln!("{err}");
+			return None;
+		}
+		Ok(a) => a,
+	};
 	let tokenizer = Tokenizer::new(&file);
 
 	let tokens = tokenizer
@@ -33,6 +39,38 @@ fn from_args() -> Option<()> {
 }
 
 fn from_stdin() {
+	let mode = env::args()
+		.nth(1)
+		.expect("expected mode for stdin parsing: tokenize or parse");
+
+	let handle = |line: &str| {
+		if mode == "tokenize" {
+			let tokenizer = Tokenizer::new(&line);
+			print!("[ ");
+			for token in tokenizer {
+				match token {
+					Ok(token) => print!("{token:?} "),
+					Err(err) => {
+						println!("\n{err}\n")
+					}
+				}
+			}
+			print!("]");
+		} else if mode == "parse" {
+			let mut parser = Parser::new(&line);
+			print!("[ ");
+			loop {
+				match parser.read_statement() {
+					Ok(a) => println!("{a:?}"),
+					Err(Error::EOFStatement) => break,
+					Err(err) => eprintln!("{err}"),
+				}
+			}
+		} else {
+			panic!("incorrect mode: expected tokenize or parse");
+		}
+	};
+
 	loop {
 		let mut line = String::new();
 
@@ -40,17 +78,7 @@ fn from_stdin() {
 		io::stdin().read_line(&mut line).unwrap();
 		println!();
 
-		let tokenizer = Tokenizer::new(&line);
-		print!("[ ");
-		for token in tokenizer {
-			match token {
-				Ok(token) => print!("{token:?} "),
-				Err(err) => {
-					println!("\n{err}\n")
-				}
-			}
-		}
-		print!("]");
+		handle(&line);
 		io::stdout().flush().unwrap();
 	}
 }

@@ -1,6 +1,6 @@
 use crate::*;
 
-use iter_read_until::{IntoReader, StrReader};
+use iter_read_until::{IntoReader, Reader, StrReader};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Signal {

@@ -4,8 +4,18 @@ pub enum Error {
 	Read(#[from] readuntil_ext::Error),
 	#[error("{context}:\n{err}")]
 	Context { context: String, err: Box<Self> },
+
 	#[error("tokenizer tokenized everything in its reader. this error is hidden most of the time")]
 	TokenizerFinished,
+
+	#[error("unexpected end of output while reading expr")]
+	EOFExpr,
+	#[error("unexpected end of output while reading statement")]
+	EOFStatement,
+	#[error("expected name of variable after let")]
+	ExpectedVariableName,
+	#[error("expected eq sign after name of variable in variable declaration")]
+	ExpectedEq,
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {
