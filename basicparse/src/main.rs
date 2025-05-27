@@ -43,6 +43,10 @@ fn from_args() -> Option<()> {
 
 	let parsed = parser
 		.statements()
+		.map(|a| {
+			println!("parsed: {a:?}");
+			a
+		})
 		.collect::<Result<Vec<_>, _>>()
 		.expect("failed to parse");
 

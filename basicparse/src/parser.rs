@@ -53,14 +53,53 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 				let b = self.read_reach()?;
 				Ok(Expr::Add(reach, b))
 			}
-			Some(Ok(Token::Parens(l))) if l.len() == 0 => Ok(Expr::CallFn(reach)),
+			Some(Ok(Token::Parens(l))) if l.len() == 0 => {
+				self.iter.next();
+				Ok(Expr::CallFn(reach))
+			}
 			None | Some(_) => Ok(Expr::Reach(reach)),
 		}
 	}
 	pub fn read_statement(&mut self) -> Result<Statement> {
-		let a = self.iter.next().ok_or(Error::EOFStatement)??;
-		match a {
+		// let a = self.iter.next().ok_or(Error::EOFStatement)??;
+		// match a {
+		// 	Token::Let => {
+		// 		let name = self.iter.next().ok_or(Error::ExpectedVariableName)??;
+		// 		if let Token::Ident(name) = name {
+		// 			let eq = self.iter.next().ok_or(Error::ExpectedEqLet)??;
+		// 			if let Token::Eq = eq {
+		// 				let expr = self.read_expr().with_context(|| {
+		// 					format!(
+		// 						"failed to read value of variable while declaring variable {name}"
+		// 					)
+		// 				})?;
+		// 				Ok(Statement::SetVariable(name, expr))
+		// 			} else {
+		// 				return Err(Error::ExpectedEqLet);
+		// 			}
+		// 		} else {
+		// 			return Err(Error::ExpectedVariableName);
+		// 		}
+		// 	}
+		// 	Token::Ident(name) => {
+		// 		let eq = self.iter.next().ok_or(Error::ExpectedSthAfterIdent)??;
+		// 		match eq {
+		// 			Token::Eq => {
+		// 				let expr = self.read_expr().with_context(|| {
+		// 					format!("while reading an expr in a variable modification")
+		// 				})?;
+
+		// 				Ok(Statement::ModifyVariable(name, expr))
+		// 			}
+		// 			_ => Err(Error::ExpectedEqIdent),
+		// 		}
+		// 	}
+		// 	_ => todo!("{a:?}"),
+		// }
+		let peek = self.iter.peek().ok_or(Error::EOFStatement)?.clone()?;
+		match peek {
 			Token::Let => {
+				self.iter.next();
 				let name = self.iter.next().ok_or(Error::ExpectedVariableName)??;
 				if let Token::Ident(name) = name {
 					let eq = self.iter.next().ok_or(Error::ExpectedEqLet)??;
@@ -70,7 +109,7 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 								"failed to read value of variable while declaring variable {name}"
 							)
 						})?;
-						Ok(Statement::SetVariable(name, expr))
+						return Ok(Statement::SetVariable(name, expr));
 					} else {
 						return Err(Error::ExpectedEqLet);
 					}
@@ -78,20 +117,23 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 					return Err(Error::ExpectedVariableName);
 				}
 			}
-			Token::Ident(name) => {
-				let eq = self.iter.next().ok_or(Error::ExpectedSthAfterIdent)??;
-				match eq {
-					Token::Eq => {
-						let expr = self.read_expr().with_context(|| {
-							format!("while reading an expr in a variable modification")
-						})?;
+			_ => {}
+		}
 
-						Ok(Statement::ModifyVariable(name, expr))
-					}
-					_ => Err(Error::ExpectedEqIdent),
+		let expr = self
+			.read_expr()
+			.with_context(|| format!("while reading an expr in a statement"))?;
+		match &expr {
+			Expr::Reach(Reach::Named(name)) => match self.iter.peek().cloned() {
+				Some(Ok(Token::Eq)) => {
+					self.iter.next();
+					let expr = self.read_expr()?;
+					Ok(Statement::ModifyVariable(name.clone(), expr))
 				}
-			}
-			_ => todo!("{a:?}"),
+				Some(Err(err)) => Err(err)?,
+				_ => Ok(Statement::DropExpr(expr)),
+			},
+			_ => Ok(Statement::DropExpr(expr)),
 		}
 	}
 	pub fn read_block(&mut self) -> Result<Block> {
