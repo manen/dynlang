@@ -35,6 +35,19 @@ fn from_args() -> Option<()> {
 		.expect("tokenizing failed");
 
 	println!("{tokens:#?}");
+
+	let parser = Parser::from_iter(tokens.into_iter().map(|a| {
+		println!("{a:?}");
+		Ok(a)
+	}));
+
+	let parsed = parser
+		.statements()
+		.collect::<Result<Vec<_>, _>>()
+		.expect("failed to parse");
+
+	println!("{parsed:#?}");
+
 	Some(())
 }
 

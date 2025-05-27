@@ -21,7 +21,11 @@ pub enum Error {
 	#[error("expected name of variable after let")]
 	ExpectedVariableName,
 	#[error("expected eq sign after name of variable in variable declaration")]
-	ExpectedEq,
+	ExpectedEqLet,
+	#[error("expected eq sign after ident name in statement")]
+	ExpectedEqIdent,
+	#[error("expected something after ident in statement")]
+	ExpectedSthAfterIdent,
 
 	#[error("invalid number literal, couldn't parse as i32 or f32")]
 	InvalidNumLit {

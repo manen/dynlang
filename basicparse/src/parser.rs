@@ -63,7 +63,7 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 			Token::Let => {
 				let name = self.iter.next().ok_or(Error::ExpectedVariableName)??;
 				if let Token::Ident(name) = name {
-					let eq = self.iter.next().ok_or(Error::ExpectedEq)??;
+					let eq = self.iter.next().ok_or(Error::ExpectedEqLet)??;
 					if let Token::Eq = eq {
 						let expr = self.read_expr().with_context(|| {
 							format!(
@@ -72,10 +72,23 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 						})?;
 						Ok(Statement::SetVariable(name, expr))
 					} else {
-						return Err(Error::ExpectedEq);
+						return Err(Error::ExpectedEqLet);
 					}
 				} else {
 					return Err(Error::ExpectedVariableName);
+				}
+			}
+			Token::Ident(name) => {
+				let eq = self.iter.next().ok_or(Error::ExpectedSthAfterIdent)??;
+				match eq {
+					Token::Eq => {
+						let expr = self.read_expr().with_context(|| {
+							format!("while reading an expr in a variable modification")
+						})?;
+
+						Ok(Statement::ModifyVariable(name, expr))
+					}
+					_ => Err(Error::ExpectedEqIdent),
 				}
 			}
 			_ => todo!("{a:?}"),
@@ -85,18 +98,29 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 		match self.iter.next().ok_or(Error::ExpectedBlock)?? {
 			Token::Curly(inner) => {
 				let inner = inner.into_iter().map(Ok).collect::<Vec<_>>();
-				let mut parser = Parser::from_iter(inner);
-				let mut block = Vec::new();
-				loop {
-					match parser.read_statement() {
-						Ok(a) => block.push(a),
-						Err(Error::EOFStatement) => break,
-						Err(err) => return Err(err),
-					}
-				}
+				let parser = Parser::from_iter(inner).statements();
+				let block = parser.collect::<Result<Vec<_>, _>>()?;
 				Ok(Block(block))
 			}
 			_ => return Err(Error::ExpectedBlock),
+		}
+	}
+
+	pub fn statements(self) -> ParserStatements<I> {
+		ParserStatements { parser: self }
+	}
+}
+
+pub struct ParserStatements<I: Iterator<Item = Result<Token>>> {
+	parser: Parser<I>,
+}
+impl<I: Iterator<Item = Result<Token>>> Iterator for ParserStatements<I> {
+	type Item = Result<Statement>;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		match self.parser.read_statement() {
+			Err(Error::EOFStatement) => None,
+			els => Some(els),
 		}
 	}
 }
