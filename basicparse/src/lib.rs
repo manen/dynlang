@@ -1,9 +1,12 @@
 use iter_read_until::{IntoReader, Reader};
-use langlib::Expr;
+use langlib::Value;
 
 mod error;
 pub use error::*;
 use readuntil_ext::ReadExt;
+
+mod tokens;
+pub use tokens::*;
 
 #[derive(Clone, Debug)]
 pub struct Parser<'a> {
@@ -16,7 +19,7 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	pub fn parse_value(&mut self) -> Result<Expr> {
+	pub fn parse_value(&mut self) -> Result<Value> {
 		let word = self.reader.read_until_item(b' ').ok()?;
 		todo!("{word}")
 	}

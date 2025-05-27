@@ -26,6 +26,7 @@ pub trait ReadExt {
 	fn ok(self) -> Result<Self::T>;
 
 	fn ok_or_end(self) -> Result<Self::T>;
+	fn opt(self) -> Option<Self::T>;
 }
 
 impl<'a> ReadExt for Read<&'a str> {
@@ -64,6 +65,13 @@ impl<'a> ReadExt for Read<&'a str> {
 			Self::End(a) => Ok(a),
 			Self::Condition(a) => Ok(a),
 			Self::Finished => Err(Error::ExpectedOkOrEndGot(Read::Finished)),
+		}
+	}
+	/// ok_or_end but returns an option
+	fn opt(self) -> Option<Self::T> {
+		match self {
+			Self::End(a) | Self::Condition(a) => Some(a),
+			Self::Finished => None,
 		}
 	}
 }

@@ -1,0 +1,11 @@
+let num = 2
+
+let grow = fn() {
+	num = num + 2
+}
+
+grow()
+_(pause)
+
+grow()
+_(pause)
