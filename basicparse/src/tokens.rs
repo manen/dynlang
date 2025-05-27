@@ -23,7 +23,7 @@ fn token_letters(c: u8) -> Option<Signal> {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
 	/// `let`
 	Let,
@@ -143,7 +143,18 @@ impl<'a> Tokenizer<'a> {
 		match word.trim() {
 			"let" => Ok(Token::Let),
 			"fn" => Ok(Token::Fn),
-			ident => Ok(Token::Ident(ident.into())),
+			ident => {
+				let numlit = ident
+					.chars()
+					.map(|a| a.is_ascii_digit())
+					.fold(true, |a, b| a && b); // if all characters are digits => doesn't handle decimal places for now
+
+				if numlit {
+					Ok(Token::NumLit(ident.into()))
+				} else {
+					Ok(Token::Ident(ident.into()))
+				}
+			}
 		}
 	}
 }

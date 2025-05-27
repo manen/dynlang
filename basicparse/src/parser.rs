@@ -3,7 +3,7 @@ use std::{iter::Peekable, marker::PhantomData};
 use crate::*;
 
 use iter_read_until::{IntoReader, Reader};
-use langlib::{Expr, Statement, Value};
+use langlib::{Block, Expr, Function, Reach, Statement, Value};
 
 #[derive(Clone, Debug)]
 pub struct Parser<I: Iterator<Item = Result<Token>>> {
@@ -17,15 +17,45 @@ impl<'a> Parser<Tokenizer<'a>> {
 	}
 }
 impl<I: Iterator<Item = Result<Token>>> Parser<I> {
-	pub fn from_iter(iter: I) -> Self {
+	pub fn from_iter(iter: impl IntoIterator<IntoIter = I>) -> Self {
 		Self {
-			iter: iter.peekable(),
+			iter: iter.into_iter().peekable(),
 		}
 	}
 
+	pub fn read_reach(&mut self) -> Result<Reach> {
+		let a = self.iter.next().ok_or(Error::EOFReach)??;
+		match a {
+			Token::Ident(name) => Ok(Reach::Named(name)),
+			Token::StrLit(s) => Ok(Reach::Value(Value::String(s))),
+			Token::NumLit(s) => match s.parse() {
+				Ok(a) => Ok(Reach::Value(Value::i32(a))),
+				Err(i32err) => match s.parse() {
+					Ok(a) => Ok(Reach::Value(Value::f32(a))),
+					Err(f32err) => return Err(Error::InvalidNumLit { f32err, i32err }),
+				},
+			},
+			Token::Fn => {
+				let parens = self.iter.next().ok_or(Error::ExpectedFnDeclParens)??;
+				assert_eq!(parens, Token::Parens(Vec::new()));
+				let block = self.read_block()?;
+
+				Ok(Reach::Value(Value::Function(Function { block })))
+			}
+			_ => unimplemented!("{a:?} as reach"),
+		}
+	}
 	pub fn read_expr(&mut self) -> Result<Expr> {
-		let a = self.iter.next().ok_or(Error::EOFExpr)??;
-		todo!("{a:?}")
+		let reach = self.read_reach()?;
+		match self.iter.peek() {
+			Some(Ok(Token::Plus)) => {
+				self.iter.next();
+				let b = self.read_reach()?;
+				Ok(Expr::Add(reach, b))
+			}
+			Some(Ok(Token::Parens(l))) if l.len() == 0 => Ok(Expr::CallFn(reach)),
+			None | Some(_) => Ok(Expr::Reach(reach)),
+		}
 	}
 	pub fn read_statement(&mut self) -> Result<Statement> {
 		let a = self.iter.next().ok_or(Error::EOFStatement)??;
@@ -48,7 +78,25 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 					return Err(Error::ExpectedVariableName);
 				}
 			}
-			_ => todo!(),
+			_ => todo!("{a:?}"),
+		}
+	}
+	pub fn read_block(&mut self) -> Result<Block> {
+		match self.iter.next().ok_or(Error::ExpectedBlock)?? {
+			Token::Curly(inner) => {
+				let inner = inner.into_iter().map(Ok).collect::<Vec<_>>();
+				let mut parser = Parser::from_iter(inner);
+				let mut block = Vec::new();
+				loop {
+					match parser.read_statement() {
+						Ok(a) => block.push(a),
+						Err(Error::EOFStatement) => break,
+						Err(err) => return Err(err),
+					}
+				}
+				Ok(Block(block))
+			}
+			_ => return Err(Error::ExpectedBlock),
 		}
 	}
 }

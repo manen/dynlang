@@ -1,3 +1,7 @@
+use std::num::{ParseFloatError, ParseIntError};
+
+use crate::Token;
+
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum Error {
 	#[error("reader error while tokenizing:\n{0}")]
@@ -8,14 +12,28 @@ pub enum Error {
 	#[error("tokenizer tokenized everything in its reader. this error is hidden most of the time")]
 	TokenizerFinished,
 
-	#[error("unexpected end of output while reading expr")]
+	#[error("unexpected end of input while reading expr")]
 	EOFExpr,
-	#[error("unexpected end of output while reading statement")]
+	#[error("unexpected end of input while reading statement")]
 	EOFStatement,
+	#[error("unexpected end of input while reading reach (value or named variable)")]
+	EOFReach,
 	#[error("expected name of variable after let")]
 	ExpectedVariableName,
 	#[error("expected eq sign after name of variable in variable declaration")]
 	ExpectedEq,
+
+	#[error("invalid number literal, couldn't parse as i32 or f32")]
+	InvalidNumLit {
+		i32err: ParseIntError,
+		f32err: ParseFloatError,
+	},
+	#[error("invalid first token while reading a reach: {0:?}")]
+	InvalidFirstReach(Token),
+	#[error("expected parens at function declaration")]
+	ExpectedFnDeclParens,
+	#[error("expected block/opening curly braces")]
+	ExpectedBlock,
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {
