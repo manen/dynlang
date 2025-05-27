@@ -6,6 +6,7 @@ pub fn preproc<E>(
 	let iter = iter.into_iter();
 	iter.map(|a| match a {
 		Ok(Statement::DropExpr(Expr::Reach(Reach::Value(Value::String(s))))) => {
+			// inline unused strings get converted into hidden debug statements
 			Ok(match s.as_ref() {
 				"__pause" => Statement::Pause,
 				"__dump_ctx" => Statement::DumpContext,
