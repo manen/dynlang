@@ -7,3 +7,6 @@ pub use tokens::*;
 
 mod parser;
 pub use parser::*;
+
+mod preproc;
+pub use preproc::*;

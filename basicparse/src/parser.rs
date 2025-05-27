@@ -140,7 +140,7 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 		match self.iter.next().ok_or(Error::ExpectedBlock)?? {
 			Token::Curly(inner) => {
 				let inner = inner.into_iter().map(Ok).collect::<Vec<_>>();
-				let parser = Parser::from_iter(inner).statements();
+				let parser = preproc(Parser::from_iter(inner).statements());
 				let block = parser.collect::<Result<Vec<_>, _>>()?;
 				Ok(Block(block))
 			}

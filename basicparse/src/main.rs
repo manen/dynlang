@@ -41,14 +41,12 @@ fn from_args() -> Option<()> {
 		Ok(a)
 	}));
 
-	let parsed = parser
-		.statements()
-		.map(|a| {
-			println!("parsed: {a:?}");
-			a
-		})
-		.collect::<Result<Vec<_>, _>>()
-		.expect("failed to parse");
+	let parsed = preproc(parser.statements().map(|a| {
+		println!("parsed: {a:?}");
+		a
+	}))
+	.collect::<Result<Vec<_>, _>>()
+	.expect("failed to parse");
 
 	println!("{parsed:#?}");
 
@@ -74,14 +72,11 @@ fn from_stdin() {
 			}
 			print!("]");
 		} else if mode == "parse" {
-			let mut parser = Parser::new(&line);
+			let parser = Parser::new(&line);
 			print!("[ ");
-			loop {
-				match parser.read_statement() {
-					Ok(a) => println!("{a:?}"),
-					Err(Error::EOFStatement) => break,
-					Err(err) => eprintln!("{err}"),
-				}
+			for stmt in preproc(parser.statements()) {
+				let stmt = stmt.unwrap();
+				println!("{stmt:?}");
 			}
 		} else {
 			panic!("incorrect mode: expected tokenize or parse");
