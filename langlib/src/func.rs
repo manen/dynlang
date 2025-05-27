@@ -2,10 +2,16 @@ use crate::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
+	ModifyVariable(String, Expr),
 	SetVariable(String, Expr),
 	Return(Expr),
+	/// executes the expr and does nothing with the output value
+	DropExpr(Expr),
+
 	/// debug
 	DumpContext,
+	/// debug, pauses execution until a key is pressed
+	Pause,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct Block(pub Vec<Statement>);

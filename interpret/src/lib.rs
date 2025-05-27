@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 mod error;
 pub use error::*;
@@ -7,26 +7,77 @@ use langlib::*;
 
 #[derive(Clone, Debug, Default)]
 pub struct Context {
+	ctx: Vec<Rc<RefCell<ContextData>>>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ContextData {
 	variables: HashMap<String, Value>,
 }
 impl Context {
 	pub fn new<I: IntoIterator<Item = (String, Value)>>(variables: I) -> Self {
 		let variables = variables.into_iter();
-
-		Self {
+		let data = ContextData {
 			variables: variables.collect(),
+		};
+		Self {
+			ctx: vec![Rc::new(RefCell::new(data))],
 		}
+	}
+
+	pub fn get_variable(&self, name: &str) -> Result<Value> {
+		for ctx in self.ctx.iter().rev() {
+			let ctx = ctx.borrow();
+			if let Some(here) = ctx.variables.get(name) {
+				return Ok(here.clone());
+			}
+		}
+		Err(Error::VariableDoesntExist(
+			name.into(),
+			VariableAccessType::Access,
+		))
+	}
+	/// returns the previous value
+	pub fn modify_variable(&self, name: &str, val: Value) -> Result<Value> {
+		for ctx in self.ctx.iter().rev() {
+			let mut ctx = ctx.borrow_mut();
+			if let Some(_) = ctx.variables.get(name) {
+				return ctx
+					.variables
+					.insert(name.into(), val)
+					.ok_or(Error::Impossible1);
+			}
+		}
+		Err(Error::VariableDoesntExist(
+			name.into(),
+			VariableAccessType::Modify,
+		))
+	}
+	/// appends the new variable to the topmost context window, creating one if none exist
+	pub fn set_variable(&mut self, name: String, val: Value) {
+		if self.ctx.len() == 0 {
+			let data = ContextData {
+				variables: [(name, val)].into_iter().collect(),
+			};
+			self.ctx.push(Rc::new(RefCell::new(data)));
+			return;
+		}
+
+		let a = self
+			.ctx
+			.iter_mut()
+			.rev()
+			.next()
+			.expect("we JUST made sure at least one context window exists");
+		let mut a = a.borrow_mut();
+		a.variables.insert(name, val);
 	}
 
 	pub fn resolve_reach(&self, r: &Reach) -> Result<Value> {
 		match r {
 			Reach::Value(val) => Ok(val.clone()),
 			Reach::Expr(expr) => self.resolve_expr(expr),
-			Reach::Named(name) => self
-				.variables
-				.get(name)
-				.cloned() // .
-				.ok_or_else(|| Error::VariableDoesntExist(name.clone())),
+			Reach::Named(name) => self.get_variable(name),
 		}
 	}
 	pub fn resolve_expr(&self, expr: &Expr) -> Result<Value> {
@@ -55,14 +106,25 @@ impl Context {
 			match stmt {
 				Statement::SetVariable(name, val) => {
 					let val = self.resolve_expr(val)?;
-					self.variables.insert(name.clone(), val);
+					self.set_variable(name.clone(), val);
 				}
-				Statement::DumpContext => {
-					println!("{:#?}", self.variables);
+				Statement::ModifyVariable(name, val) => {
+					let val = self.resolve_expr(val)?;
+					self.modify_variable(name, val)?;
+				}
+				Statement::DropExpr(expr) => {
+					self.resolve_expr(expr)?;
 				}
 				Statement::Return(expr) => {
 					let val = self.resolve_expr(expr)?;
 					return Ok(val);
+				}
+
+				Statement::DumpContext => {
+					println!("{:#?}", self);
+				}
+				Statement::Pause => {
+					std::io::stdin().lines().next();
 				}
 			}
 		}
