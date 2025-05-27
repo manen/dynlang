@@ -144,10 +144,11 @@ impl<'a> Tokenizer<'a> {
 			"let" => Ok(Token::Let),
 			"fn" => Ok(Token::Fn),
 			ident => {
-				let numlit = ident
+				let number = ident
 					.chars()
-					.map(|a| a.is_ascii_digit())
-					.fold(true, |a, b| a && b); // if all characters are digits => doesn't handle decimal places for now
+					.map(|a| a.is_ascii_digit() || a == '.')
+					.fold(true, |a, b| a && b); // if all characters are digits or dots
+				let numlit = number && ident.chars().filter(|a| *a == '.').count() <= 1; // if number && there's at most one dot
 
 				if numlit {
 					Ok(Token::NumLit(ident.into()))
