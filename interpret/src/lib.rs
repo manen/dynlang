@@ -25,6 +25,18 @@ impl Context {
 		}
 	}
 
+	/// clones itself and appends a new context window to the list (making newly created variables automatically get placed in the new context window)
+	pub fn push_context(&self) -> Self {
+		Self {
+			ctx: self
+				.ctx
+				.iter()
+				.cloned()
+				.chain(std::iter::once(Default::default()))
+				.collect(),
+		}
+	}
+
 	pub fn variables_len(&self) -> usize {
 		self.ctx.iter().map(|a| a.borrow().variables.len()).sum()
 	}
@@ -104,7 +116,7 @@ impl Context {
 			Expr::CallFn(f) => {
 				let f = self.resolve_reach(f)?;
 				match f {
-					Value::Function(f) => self.clone().resolve_block(&f.block),
+					Value::Function(f) => self.call_fn(&f),
 					_ => Err(Error::NotAFunction(f)),
 				}
 			}
@@ -146,6 +158,11 @@ impl Context {
 			}
 		}
 		Ok(Value::None)
+	}
+	/// safely calls the given function
+	pub fn call_fn(&self, f: &Function) -> Result<Value> {
+		let mut ctx = self.push_context();
+		ctx.resolve_block(&f.block)
 	}
 
 	/// use for debugging only

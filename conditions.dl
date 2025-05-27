@@ -1,0 +1,7 @@
+let i = 0
+
+let fib = fn() {
+	if i < 0 {
+
+	}
+}
