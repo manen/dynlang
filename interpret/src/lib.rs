@@ -114,7 +114,9 @@ impl Context {
 	/// runs the given block as-is. does not isolate context at all so unless you wanna leak
 	/// internal variables you should probably use `context.clone().resolve_block()`
 	pub fn resolve_block(&mut self, block: &Block) -> Result<Value> {
-		for stmt in block.iter() {
+		let len = block.0.len();
+		for (i, stmt) in block.iter().enumerate() {
+			let last = i == len - 1;
 			match stmt {
 				Statement::SetVariable(name, val) => {
 					let val = self.resolve_expr(val)?;
@@ -125,7 +127,10 @@ impl Context {
 					self.modify_variable(name, val)?;
 				}
 				Statement::DropExpr(expr) => {
-					self.resolve_expr(expr)?;
+					let val = self.resolve_expr(expr)?;
+					if last {
+						return Ok(val);
+					}
 				}
 				Statement::Return(expr) => {
 					let val = self.resolve_expr(expr)?;

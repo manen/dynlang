@@ -5,7 +5,8 @@ pub enum Statement {
 	ModifyVariable(String, Expr),
 	SetVariable(String, Expr),
 	Return(Expr),
-	/// executes the expr and does nothing with the output value
+	/// executes the expr and does nothing with the output value \
+	/// UNLESS! if it's the last instruction in a block, then it gets returned
 	DropExpr(Expr),
 
 	/// debug
