@@ -90,12 +90,8 @@ impl<'a> Tokenizer<'a> {
 							)
 						})?;
 					let tokenizer = Tokenizer::new(s);
-					let tokenizer = tokenizer.map(|a| {
-						println!("hello {a:?}");
-						a
-					});
 					let tokens = tokenizer.collect::<Result<Vec<_>, _>>()?;
-					Token::Parens(tokens)
+					Token::$name(tokens)
 				}};
 			}
 
