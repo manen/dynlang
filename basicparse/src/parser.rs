@@ -59,6 +59,15 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 					Err(Error::ExpectedFnDeclParens)
 				}
 			}
+			Token::Parens(parens) => {
+				let mut parser = Parser::from_iter(parens.into_iter().map(Ok));
+				let expr = parser.read_expr().with_context(|| {
+					format!(
+						"while reading inside parentheses (reading a reach that's an expr in disguise)"
+					)
+				})?;
+				Ok(Reach::Expr(Box::new(expr)))
+			}
 			_ => unimplemented!("{a:?} as reach"),
 		}
 	}
@@ -112,6 +121,24 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 					.with_context(|| format!("while reading right side of less than check"))?;
 
 				Expr::Lt(expr.into_reach(), b.into_reach())
+			}
+			Some(Ok(Token::Or)) => {
+				self.iter.next();
+
+				let b = self.read_expr().with_context(|| {
+					format!("while reading right side of boolean or expression")
+				})?;
+
+				Expr::Or(expr.into_reach(), b.into_reach())
+			}
+			Some(Ok(Token::And)) => {
+				self.iter.next();
+
+				let b = self.read_expr().with_context(|| {
+					format!("while reading right side of boolean and operation")
+				})?;
+
+				Expr::And(expr.into_reach(), b.into_reach())
 			}
 			Some(Ok(Token::Parens(_))) => match self.iter.next() {
 				Some(Ok(Token::Parens(l))) => {

@@ -39,6 +39,11 @@ pub enum Token {
 	/// `else`
 	Else,
 
+	/// `||`
+	Or,
+	/// `&&`
+	And,
+
 	/// `=`
 	Eq,
 	/// `fn`
@@ -166,6 +171,8 @@ impl<'a> Tokenizer<'a> {
 			"fn" => Ok(Token::Fn),
 			"if" => Ok(Token::If),
 			"else" => Ok(Token::Else),
+			"||" => Ok(Token::Or),
+			"&&" => Ok(Token::And),
 			ident => {
 				let number = ident
 					.chars()

@@ -141,6 +141,18 @@ impl Context {
 
 				a.lt(&b).ok_or_else(|| Error::InvalidLt { a, b })
 			}
+			Expr::Or(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				Ok(Value::bool(a.is_true() || b.is_true()))
+			}
+			Expr::And(a, b) => {
+				let a = self.resolve_reach(a)?;
+				let b = self.resolve_reach(b)?;
+
+				Ok(Value::bool(a.is_true() && b.is_true()))
+			}
 			Expr::CallFn { f, args } => {
 				let f = self.resolve_reach(f)?;
 				match f {

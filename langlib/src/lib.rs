@@ -100,6 +100,11 @@ pub enum Expr {
 	// true if the second is larger
 	Lt(Reach, Reach),
 
+	// a or b
+	Or(Reach, Reach),
+	// a and b
+	And(Reach, Reach),
+
 	Conditional {
 		condition: Reach,
 		if_true: Reach,

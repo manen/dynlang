@@ -1,14 +1,7 @@
 let fib = fn(n) {
-	if n == 0 {
-		0
+	if (n == 0) || (n == 1) {
+		n
 	} else {
-		if n == 1 {
-			1
-		} else {
-			let a = fib(n - 1)
-			let b = fib(n - 2)
-
-			a + b
-		}
+		fib(n - 1) + fib(n - 2)
 	}
 }
