@@ -25,6 +25,9 @@ impl Context {
 		}
 	}
 
+	pub fn variables_len(&self) -> usize {
+		self.ctx.iter().map(|a| a.borrow().variables.len()).sum()
+	}
 	/// iterate over every variable available
 	pub fn for_variables(&self, mut f: impl FnMut(&String, &Value)) {
 		for ctx in &self.ctx {
@@ -149,12 +152,24 @@ impl Context {
 impl Display for Context {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "Context [")?;
-		for ctx in &self.ctx {
-			let ctx = ctx.borrow();
-			for (name, val) in &ctx.variables {
-				write!(f, "  {name}: {val:?}")?;
+		let small = self.variables_len() < 3;
+		if small {
+			for ctx in &self.ctx {
+				let ctx = ctx.borrow();
+				for (name, val) in &ctx.variables {
+					write!(f, " {name}: {val:?},")?;
+				}
 			}
+			write!(f, " ]")
+		} else {
+			writeln!(f)?;
+			for ctx in &self.ctx {
+				let ctx = ctx.borrow();
+				for (name, val) in &ctx.variables {
+					writeln!(f, "  {name}: {val:?}")?;
+				}
+			}
+			write!(f, "]")
 		}
-		write!(f, "]")
 	}
 }
