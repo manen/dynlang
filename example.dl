@@ -3,10 +3,21 @@ let num = 2
 let grow = fn() {
 	num = num + 2
 	"__dump_ctx"
+	"__pause"
 }
 
 grow()
-"__pause"
-
 grow()
-"__pause"
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()
+grow()

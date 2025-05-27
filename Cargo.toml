@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [ "interpret","langlib", "basicparse", "readuntil_ext"]
+members = [ "interpret","langlib", "basicparse", "readuntil_ext", "cli"]
 
 [workspace.dependencies]
 langlib.path = "./langlib"
