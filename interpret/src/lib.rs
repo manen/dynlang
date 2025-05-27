@@ -119,10 +119,19 @@ impl Context {
 
 				a.sub(&b).ok_or_else(|| Error::InvalidSubtraction { a, b })
 			}
-			Expr::CallFn(f) => {
+			Expr::CallFn { f, args } => {
 				let f = self.resolve_reach(f)?;
 				match f {
-					Value::Function(f) => self.call_fn(&f),
+					Value::Function(f) => {
+						let args = args.clone().map(|reach| self.resolve_reach(&reach));
+						let args = if let Some(args) = args {
+							Some(args?)
+						} else {
+							None
+						};
+
+						self.call_fn(&f, args)
+					}
 					_ => Err(Error::NotAFunction(f)),
 				}
 			}
@@ -166,8 +175,16 @@ impl Context {
 		Ok(Value::None)
 	}
 	/// safely calls the given function
-	pub fn call_fn(&self, f: &Function) -> Result<Value> {
+	pub fn call_fn(&self, f: &Function, args: Option<Value>) -> Result<Value> {
 		let mut ctx = self.push_context();
+		match (&f.arg_name, args) {
+			(Some(name), Some(val)) => {
+				ctx.set_variable(name.clone(), val);
+			}
+			(Some(name), None) => return Err(Error::MissingArg(name.clone())),
+			_ => {}
+		}
+
 		ctx.resolve_block(&f.block)
 	}
 

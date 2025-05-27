@@ -43,6 +43,9 @@ pub enum Error {
 
 	#[error("unsuccessful expansion of expr (this error is usually handled internally)")]
 	ExprExpand(Expr),
+
+	#[error("expected ident in function arguments, got {0:?}")]
+	ExpectedIdentGot(Token),
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {

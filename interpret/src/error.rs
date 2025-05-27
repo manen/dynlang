@@ -12,6 +12,9 @@ pub enum Error {
 	#[error("attempted to call a variable that isn't a function: {0:?}")]
 	NotAFunction(Value),
 
+	#[error("missing argument to function: expected arg {0}")]
+	MissingArg(String),
+
 	#[error(
 		"impossible case: we checked if this variable existed before and it did, but when replacing it with a new value it turns out it didn't exist"
 	)]

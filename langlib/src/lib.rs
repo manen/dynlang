@@ -59,7 +59,10 @@ pub enum Expr {
 	Add(Reach, Reach),
 	Sub(Reach, Reach),
 	/// calls the given function. no args for now
-	CallFn(Reach),
+	CallFn {
+		f: Reach,
+		args: Option<Reach>,
+	},
 }
 impl Expr {
 	pub fn into_reach(self) -> Reach {

@@ -10,13 +10,16 @@ fn main() {
 			),
 			Statement::SetVariable(
 				"grow".into(),
-				Expr::Reach(Reach::Value(Value::Function(Function::new([
-					Statement::ModifyVariable(
-						"num".into(),
-						Expr::Add(Reach::Named("num".into()), Reach::Value(Value::i32(2))),
-					),
-					Statement::DumpContext,
-				])))),
+				Expr::Reach(Reach::Value(Value::Function(Function::new(
+					None,
+					[
+						Statement::ModifyVariable(
+							"num".into(),
+							Expr::Add(Reach::Named("num".into()), Reach::Value(Value::i32(2))),
+						),
+						Statement::DumpContext,
+					],
+				)))),
 			),
 		]
 		.into_iter()
@@ -24,7 +27,10 @@ fn main() {
 			std::iter::repeat_n(
 				[
 					Statement::Pause,
-					Statement::Expr(Expr::CallFn(Reach::Named("grow".into()))),
+					Statement::Expr(Expr::CallFn {
+						f: Reach::Named("grow".into()),
+						args: None,
+					}),
 				],
 				4,
 			)

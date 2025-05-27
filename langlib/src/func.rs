@@ -25,11 +25,13 @@ impl Block {
 #[derive(Clone, Debug, PartialEq)]
 /// functions don't have args for now lol
 pub struct Function {
+	/// the arg name (if any)
+	pub arg_name: Option<String>,
 	pub block: Block,
 }
 impl Function {
-	pub fn new<I: IntoIterator<Item = Statement>>(statements: I) -> Self {
+	pub fn new<I: IntoIterator<Item = Statement>>(arg_name: Option<String>, statements: I) -> Self {
 		let block = Block(statements.into_iter().collect());
-		Self { block }
+		Self { arg_name, block }
 	}
 }

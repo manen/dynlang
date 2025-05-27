@@ -37,10 +37,27 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 			},
 			Token::Fn => {
 				let parens = self.iter.next().ok_or(Error::ExpectedFnDeclParens)??;
-				assert_eq!(parens, Token::Parens(Vec::new()));
-				let block = self.read_block()?;
+				if let Token::Parens(parens) = parens {
+					let mut arg_names = parens.into_iter().map(|token| match token {
+						Token::Ident(name) => Ok(name),
+						token => Err(Error::ExpectedIdentGot(token)),
+					});
+					let arg_name = arg_names.next();
+					let arg_name = if let Some(arg_name) = arg_name {
+						Some(arg_name?)
+					} else {
+						None
+					};
+					assert!(
+						arg_names.next().is_none(),
+						"only one argument per function for now"
+					);
 
-				Ok(Reach::Value(Value::Function(Function { block })))
+					let block = self.read_block()?;
+					Ok(Reach::Value(Value::Function(Function { arg_name, block })))
+				} else {
+					Err(Error::ExpectedFnDeclParens)
+				}
 			}
 			_ => unimplemented!("{a:?} as reach"),
 		}
@@ -63,10 +80,22 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 
 				Expr::Sub(reach, b)
 			}
-			Some(Ok(Token::Parens(l))) if l.len() == 0 => {
-				self.iter.next();
-				Expr::CallFn(expr.into_reach())
-			}
+			Some(Ok(Token::Parens(_))) => match self.iter.next() {
+				Some(Ok(Token::Parens(l))) => {
+					let args = if l.len() > 0 {
+						let mut parser = Parser::from_iter(l.into_iter().map(Ok));
+						let expr = parser.read_expr()?;
+						Some(expr.into_reach())
+					} else {
+						None
+					};
+					Expr::CallFn {
+						f: expr.into_reach(),
+						args,
+					}
+				}
+				_ => panic!("iter.peek() has to be equal to iter.next() this is impossible"),
+			},
 			None | Some(_) => return Err(Error::ExprExpand(expr)),
 		};
 		Ok(a)
