@@ -131,9 +131,9 @@ impl<I: Iterator<Item = Result<Token>>> Parser<I> {
 					Ok(Statement::ModifyVariable(name.clone(), expr))
 				}
 				Some(Err(err)) => Err(err)?,
-				_ => Ok(Statement::DropExpr(expr)),
+				_ => Ok(Statement::Expr(expr)),
 			},
-			_ => Ok(Statement::DropExpr(expr)),
+			_ => Ok(Statement::Expr(expr)),
 		}
 	}
 	pub fn read_block(&mut self) -> Result<Block> {

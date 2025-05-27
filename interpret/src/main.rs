@@ -24,7 +24,7 @@ fn main() {
 			std::iter::repeat_n(
 				[
 					Statement::Pause,
-					Statement::DropExpr(Expr::CallFn(Reach::Named("grow".into()))),
+					Statement::Expr(Expr::CallFn(Reach::Named("grow".into()))),
 				],
 				4,
 			)

@@ -126,7 +126,7 @@ impl Context {
 					let val = self.resolve_expr(val)?;
 					self.modify_variable(name, val)?;
 				}
-				Statement::DropExpr(expr) => {
+				Statement::Expr(expr) => {
 					let val = self.resolve_expr(expr)?;
 					if last {
 						return Ok(val);

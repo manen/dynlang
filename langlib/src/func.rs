@@ -7,7 +7,7 @@ pub enum Statement {
 	Return(Expr),
 	/// executes the expr and does nothing with the output value \
 	/// UNLESS! if it's the last instruction in a block, then it gets returned
-	DropExpr(Expr),
+	Expr(Expr),
 
 	/// debug
 	DumpContext,
