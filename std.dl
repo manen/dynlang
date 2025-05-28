@@ -1,4 +1,15 @@
 let true = 1 == 1
 let false = 1 == 2
 
-"now this is what i call a standard library"
+let arrays = obj {
+	repeat: fn(base_times) {
+		let base = base_times.0
+		let times = base_times.1
+
+		if times < 1 {
+			[]
+		} else {
+			base + arrays.repeat([base times - 1])
+		}
+	}
+}
