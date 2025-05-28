@@ -52,6 +52,4 @@ to run a standalone file
 
 closures don't really work if they capture variables because we only pass the function as a value and we don't package any other information with it (like the variables it's using from outer scopes)
 
-could be fixed by decoupling `liblang::Function` from the type of function the interpreter uses
-
-could allow for builtin functions and closures (which is just a function and a list of possible context windows)
+okay the way to this probably is to introduce a new Value variant that's just a function and the context it needs but i kinda need to rethink how contexts should even work cause right now [functions have access to variables they shouldn't even know about](/contexts-are-broken.dl)

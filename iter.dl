@@ -1,0 +1,35 @@
+"
+an iterator is just a plain object that has:
+- len field: function returning a number
+- next field: function returning the next element OR none
+"
+
+let iter_from_array = fn(array) {
+	"
+	for this to work we need:
+	- .len index on strings, arrays, maybe objects
+	- actual working closures so context fix
+	"
+}
+
+let iter_from_range = fn(from_to) {
+	let from = from_to.0
+	let to = from_to.1
+
+	let len = to - from
+	let n = from
+
+	obj {
+		len: fn() { len }
+		next: fn() {
+			if n < to {
+				n = n + 1
+				n - 1
+			} else {
+				if 1 == 2 {
+					true
+				}
+			}
+		}
+	}
+}

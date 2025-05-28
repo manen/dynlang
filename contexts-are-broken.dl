@@ -2,3 +2,10 @@ let secret = fn(f) {
 	let num = "pst don't leak this"
 	f()
 }
+
+let f = fn() {
+	builtins.print(num)
+}
+
+secret(f)
+"we just leaked an internal variable"

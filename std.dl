@@ -13,3 +13,13 @@ let arrays = obj {
 		}
 	}
 }
+
+let map = fn(iter_fn) {
+	let iter = iter_fn.0
+	let f = iter_fn.1
+
+	obj {
+		len: fn() { iter.len() }
+		next: fn() { f(iter.next()) }
+	}
+}

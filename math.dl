@@ -1,0 +1,33 @@
+let math = obj {
+	double: fn(a) {
+		a + a
+	}
+	mul: fn(a_b) {
+		let a = a_b.0
+		let b = a_b.1
+
+		if b == 0 {
+			0
+		} else {
+			if b == 1 {
+				a
+			} else {
+				a + math.mul([a b - 1])
+			}
+		}
+	}
+	pow: fn(a_b) {
+		let a = a_b.0
+		let b = a_b.1
+
+		if b == 0 {
+			1
+		} else {
+			if b == 1 {
+				a
+			} else {
+				math.mul([a math.pow([a b - 1])])
+			}
+		}
+	}
+}

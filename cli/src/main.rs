@@ -51,19 +51,17 @@ fn main() {
 					Ok(a) => println!("{a:?}"),
 					Err(err) => eprintln!("failed to execute: {err}"),
 				},
-				Err(err) => eprintln!("failed to parse: {err:#?}"),
+				Err(err) => eprintln!("failed to parse: {err}"),
 			}
 		}
 	}
 }
 
-fn parse(src: &str) -> anyhow::Result<Vec<Statement>> {
+fn parse(src: &str) -> basicparse::Result<Vec<Statement>> {
 	let parser = Parser::new(src);
 	let parser = preproc(parser.statements());
 
-	let parsed = parser
-		.collect::<Result<Vec<_>, _>>()
-		.with_context(|| "parser failed")?;
+	let parsed = parser.collect::<Result<Vec<_>, _>>()?;
 
 	Ok(parsed)
 }

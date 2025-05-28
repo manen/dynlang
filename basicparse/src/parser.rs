@@ -27,18 +27,22 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 		let a = self.iter.next().ok_or(Error::EOFReach)??;
 		match a {
 			Token::Ident(name) => {
-				if let Some(Ok(Token::Curly(_))) = self.iter.peek() {
-					if let Some(Ok(Token::Curly(map))) = self.iter.next() {
-						// object literal
-						let parser = Parser::from_iter(map.into_iter().map(Ok)).object();
-						Ok(Reach::ObjectLiteral(parser.collect::<Result<Vec<_>, _>>()?))
-					} else {
-						panic!("peeked != iter.next()");
+				if name == "obj" {
+					if let Some(Ok(Token::Curly(_))) = self.iter.peek() {
+						if let Some(Ok(Token::Curly(map))) = self.iter.next() {
+							// object literal
+							let parser = Parser::from_iter(map.into_iter().map(Ok)).object();
+							return Ok(Reach::ObjectLiteral(
+								parser.collect::<Result<Vec<_>, _>>()?,
+							));
+						} else {
+							panic!("peeked != iter.next()");
+						}
 					}
-				} else {
-					// regular variable reference
-					Ok(Reach::Named(name))
 				}
+
+				// regular variable reference
+				Ok(Reach::Named(name))
 			}
 			Token::StrLit(s) => Ok(Reach::Value(Value::String(s))),
 			Token::NumLit(s) => match s.parse() {
