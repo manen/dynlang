@@ -26,6 +26,7 @@ fn main() {
 		);
 
 		let mut ctx = Context::default();
+		ctx.builtins(std_builtins::builtins());
 		loop {
 			print!(" > ");
 			io::stdout().flush().unwrap();
@@ -69,7 +70,7 @@ fn parse(src: &str) -> anyhow::Result<Vec<Statement>> {
 fn eval(src: &str) -> anyhow::Result<Value> {
 	let parsed = parse(src)?;
 
-	interpret::Context::new([])
-		.exec(parsed)
-		.with_context(|| "execution failed")
+	let mut ctx = interpret::Context::new([]);
+	ctx.builtins(std_builtins::builtins());
+	ctx.exec(parsed).with_context(|| "execution failed")
 }

@@ -1,0 +1,4 @@
+let secret = fn(f) {
+	let num = "pst don't leak this"
+	f()
+}

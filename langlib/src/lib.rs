@@ -1,6 +1,9 @@
 mod func;
 pub use func::*;
 
+mod builtin;
+pub use builtin::*;
+
 #[derive(Clone, Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum Value {
@@ -12,6 +15,7 @@ pub enum Value {
 	Array(Vec<Value>),
 	Function(Function),
 
+	Builtin(DynBuiltin),
 	None,
 }
 impl Value {

@@ -24,6 +24,11 @@ impl Context {
 			ctx: vec![Rc::new(RefCell::new(data))],
 		}
 	}
+	pub fn builtins<I: IntoIterator<Item = DynBuiltin>>(&mut self, builtins: I) {
+		for builtin in builtins {
+			self.set_variable(builtin.name().to_owned().into(), Value::Builtin(builtin));
+		}
+	}
 
 	/// clones itself and appends a new context window to the list (making newly created variables automatically get placed in the new context window)
 	pub fn push_context(&self) -> Self {
@@ -165,6 +170,17 @@ impl Context {
 						};
 
 						self.call_fn(&f, args)
+					}
+					Value::Builtin(d) if d.f().is_some() => {
+						let f = d.f().expect("we just made sure it's some");
+						let args = args.clone().map(|a| self.resolve_reach(&a));
+						let args = if let Some(args) = args {
+							args?
+						} else {
+							Value::None
+						};
+
+						Ok(f(args))
 					}
 					_ => Err(Error::NotAFunction(f)),
 				}

@@ -7,4 +7,5 @@ edition = "2024"
 langlib.workspace = true
 basicparse.workspace = true
 interpret.workspace = true
+std_builtins.workspace = true
 anyhow = "1.0.98"

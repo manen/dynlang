@@ -1,0 +1,5 @@
+let collector = ":)"
+
+let eat = fn() {
+	collector = collector + collector + collector + collector
+}
