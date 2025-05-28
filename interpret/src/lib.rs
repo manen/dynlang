@@ -25,9 +25,14 @@ impl Context {
 		}
 	}
 	pub fn builtins<I: IntoIterator<Item = DynBuiltin>>(&mut self, builtins: I) {
-		for builtin in builtins {
-			self.set_variable(builtin.name().to_owned().into(), Value::Builtin(builtin));
-		}
+		// for builtin in builtins {
+		// 	self.set_variable(builtin.name().to_owned().into(), Value::Builtin(builtin));
+		// }
+		let map = builtins
+			.into_iter()
+			.map(|b| (b.name().to_string(), Value::Builtin(b)))
+			.collect();
+		self.set_variable("builtins".into(), Value::Object(map));
 	}
 
 	/// clones itself and appends a new context window to the list (making newly created variables automatically get placed in the new context window)
@@ -115,6 +120,11 @@ impl Context {
 			Expr::Block(block) => {
 				let mut window = self.push_context();
 				window.resolve_block(block)
+			}
+			Expr::Index(a, i) => {
+				let a = self.resolve_reach(a)?;
+				a.index(i)
+					.ok_or_else(|| Error::InvalidIndex { a, i: i.clone() })
 			}
 			Expr::Add(a, b) => {
 				let a = self.resolve_reach(a)?;

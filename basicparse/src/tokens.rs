@@ -10,6 +10,8 @@ enum Signal {
 	Gt,
 	Lt,
 
+	Dot,
+
 	StrStart,
 	ParensStart,
 	CurlyStart,
@@ -23,6 +25,7 @@ fn token_letters(c: u8) -> Option<Signal> {
 		b'>' => Some(Signal::Gt),
 		b'<' => Some(Signal::Lt),
 		b'"' => Some(Signal::StrStart),
+		b'.' => Some(Signal::Dot),
 		b'(' => Some(Signal::ParensStart),
 		b'{' => Some(Signal::CurlyStart),
 		b'[' => Some(Signal::BracketStart),
@@ -44,6 +47,8 @@ pub enum Token {
 	/// `&&`
 	And,
 
+	/// `.`
+	Dot,
 	/// `=`
 	Eq,
 	/// `fn`
@@ -124,6 +129,7 @@ impl<'a> Tokenizer<'a> {
 				Signal::Minus => Token::Minus,
 				Signal::Gt => Token::Gt,
 				Signal::Lt => Token::Lt,
+				Signal::Dot => Token::Dot,
 				Signal::StrStart => {
 					let s = self
 						.reader

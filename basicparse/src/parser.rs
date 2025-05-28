@@ -3,7 +3,7 @@ use std::{iter::Peekable, marker::PhantomData};
 use crate::*;
 
 use iter_read_until::{IntoReader, Reader};
-use langlib::{Block, Expr, Function, Reach, Statement, Value};
+use langlib::{Block, Expr, Function, Index, Reach, Statement, Value};
 
 #[derive(Clone, Debug)]
 pub struct Parser<I: Iterator<Item = Result<Token>>> {
@@ -88,6 +88,22 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 				let b = self.read_expr()?.into_reach();
 
 				Expr::Sub(reach, b)
+			}
+			Some(Ok(Token::Dot)) => {
+				self.iter.next();
+
+				let reach = expr.into_reach();
+				let b = self.read_reach().with_context(|| {
+					format!("while reading right-hand side of . indexing access")
+				})?;
+
+				let index = match b {
+					Reach::Named(name) => Index::Ident(name),
+					Reach::Value(Value::i32(i)) => Index::NumLit(i),
+					_ => return Err(Error::InvalidIndex),
+				};
+
+				Expr::Index(reach, index)
 			}
 			Some(Ok(Token::Eq)) => {
 				let mut clone = self.clone();

@@ -1,4 +1,6 @@
 mod func;
+use std::collections::HashMap;
+
 pub use func::*;
 
 mod builtin;
@@ -14,6 +16,7 @@ pub enum Value {
 	String(String),
 	Array(Vec<Value>),
 	Function(Function),
+	Object(HashMap<String, Value>),
 
 	Builtin(DynBuiltin),
 	None,
@@ -24,6 +27,17 @@ impl Value {
 			Value::bool(true) => true,
 			&Value::i32(n) if n != 0 => true,
 			_ => false,
+		}
+	}
+
+	pub fn index(&self, i: &Index) -> Option<Self> {
+		match (self, i) {
+			(Value::Object(obj), i) => {
+				let i = i.clone().into_str();
+				obj.get(&i).cloned()
+			}
+			(Value::Array(arr), Index::NumLit(i)) => arr.iter().nth(*i as _).cloned(),
+			_ => None,
 		}
 	}
 
@@ -93,9 +107,28 @@ impl Value {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum Index {
+	Ident(String),
+	NumLit(i32),
+}
+impl Index {
+	pub fn into_str(self) -> String {
+		match self {
+			Index::Ident(name) => name,
+			Index::NumLit(num) => format!("{num}"),
+		}
+	}
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
 	Reach(Reach),
 	Block(Block),
+
+	/// index something
+	/// so this is used for reaching into maps (like person.name)
+	/// and arrays too (like array.0)
+	Index(Reach, Index),
 
 	// these return bools
 	Cmp(Reach, Reach),

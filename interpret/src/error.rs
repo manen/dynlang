@@ -13,6 +13,8 @@ pub enum Error {
 	InvalidGt { a: Value, b: Value },
 	#[error("attempted invalid less than operation {a:?} < {b:?}")]
 	InvalidLt { a: Value, b: Value },
+	#[error("invalid indexing of value: {a:?}.{i:?}")]
+	InvalidIndex { a: Value, i: Index },
 	#[error("attempted to call a variable that isn't a function: {0:?}")]
 	NotAFunction(Value),
 

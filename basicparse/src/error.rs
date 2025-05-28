@@ -46,6 +46,10 @@ pub enum Error {
 
 	#[error("expected ident in function arguments, got {0:?}")]
 	ExpectedIdentGot(Token),
+	#[error(
+		"invalid index: expected either an ident or an i32 literal on right hand side of . access operation"
+	)]
+	InvalidIndex,
 }
 impl Error {
 	pub fn with_context(self, context: String) -> Self {
