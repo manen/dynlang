@@ -8,6 +8,7 @@ fn print_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
 			Value::f32(a) => println!("{a}"),
 			Value::String(a) => println!("{a}"),
 			Value::Array(a) => println!("{a:?}"),
+			Value::Object(a) => println!("{a:?}"),
 			_ => println!("{value:?}"),
 		}
 		Value::None

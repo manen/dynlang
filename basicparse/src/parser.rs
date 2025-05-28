@@ -68,6 +68,13 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 				})?;
 				Ok(Reach::Expr(Box::new(expr)))
 			}
+			Token::Brackets(b) => {
+				let parser = Parser::from_iter(b.into_iter().map(Ok)).comma_separated_expressions();
+				let elements = parser.collect::<Result<Vec<_>, _>>().with_context(|| {
+					format!("while parsing expressions inside an array literal")
+				})?;
+				Ok(Reach::ArrayLiteral(elements))
+			}
 			_ => unimplemented!("{a:?} as reach"),
 		}
 	}
@@ -281,6 +288,9 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 	pub fn statements(self) -> ParserStatements<I> {
 		ParserStatements { parser: self }
 	}
+	pub fn comma_separated_expressions(self) -> ParserCSE<I> {
+		ParserCSE { parser: self }
+	}
 }
 
 pub struct ParserStatements<I: Iterator<Item = Result<Token>> + Clone> {
@@ -292,6 +302,23 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Iterator for ParserStatements<I>
 	fn next(&mut self) -> Option<Self::Item> {
 		match self.parser.read_statement() {
 			Err(Error::EOFStatement) => None,
+			els => Some(els),
+		}
+	}
+}
+
+/// comma separated expressions \
+/// expect they're really not even separated by a comma but shshsh
+pub struct ParserCSE<I: Iterator<Item = Result<Token>> + Clone> {
+	parser: Parser<I>,
+}
+impl<I: Iterator<Item = Result<Token>> + Clone> Iterator for ParserCSE<I> {
+	type Item = Result<Expr>;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		match self.parser.read_expr() {
+			Err(Error::EOFExpr) => None,
+			Err(Error::EOFReach) => None,
 			els => Some(els),
 		}
 	}

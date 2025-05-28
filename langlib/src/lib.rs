@@ -169,6 +169,9 @@ impl Expr {
 #[derive(Clone, Debug, PartialEq)]
 /// represents how we reach a variable
 pub enum Reach {
+	ArrayLiteral(Vec<Expr>),
+	ObjectLiteral(Vec<(String, Expr)>),
+
 	Value(Value),
 	Expr(Box<Expr>),
 	Named(String),

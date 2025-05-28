@@ -51,7 +51,7 @@ fn main() {
 					Ok(a) => println!("{a:?}"),
 					Err(err) => eprintln!("failed to execute: {err}"),
 				},
-				Err(err) => eprintln!("failed to parse: {err}"),
+				Err(err) => eprintln!("failed to parse: {err:#?}"),
 			}
 		}
 	}

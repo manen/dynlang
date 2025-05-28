@@ -114,7 +114,7 @@ impl<'a> Tokenizer<'a> {
 							format!(
 								"couldn't find matching closing parens for {} ('{}')",
 								stringify!($name),
-								$cl
+								$cl as char
 							)
 						})?;
 					let tokenizer = Tokenizer::new(s);

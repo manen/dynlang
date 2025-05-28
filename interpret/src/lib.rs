@@ -112,6 +112,22 @@ impl Context {
 			Reach::Value(val) => Ok(val.clone()),
 			Reach::Expr(expr) => self.resolve_expr(expr),
 			Reach::Named(name) => self.get_variable(name),
+
+			Reach::ArrayLiteral(arr) => {
+				let mut values = Vec::with_capacity(arr.len());
+				for expr in arr {
+					let val = self.resolve_expr(expr)?;
+					values.push(val);
+				}
+				Ok(Value::Array(values))
+			}
+			Reach::ObjectLiteral(obj) => {
+				let mut values = HashMap::with_capacity(obj.len());
+				for (name, expr) in obj {
+					values.insert(name.clone(), self.resolve_expr(expr)?);
+				}
+				Ok(Value::Object(values))
+			}
 		}
 	}
 	pub fn resolve_expr(&self, expr: &Expr) -> Result<Value> {
