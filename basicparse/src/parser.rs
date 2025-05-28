@@ -26,7 +26,20 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 	pub fn read_reach(&mut self) -> Result<Reach> {
 		let a = self.iter.next().ok_or(Error::EOFReach)??;
 		match a {
-			Token::Ident(name) => Ok(Reach::Named(name)),
+			Token::Ident(name) => {
+				if let Some(Ok(Token::Curly(_))) = self.iter.peek() {
+					if let Some(Ok(Token::Curly(map))) = self.iter.next() {
+						// object literal
+						let parser = Parser::from_iter(map.into_iter().map(Ok)).object();
+						Ok(Reach::ObjectLiteral(parser.collect::<Result<Vec<_>, _>>()?))
+					} else {
+						panic!("peeked != iter.next()");
+					}
+				} else {
+					// regular variable reference
+					Ok(Reach::Named(name))
+				}
+			}
 			Token::StrLit(s) => Ok(Reach::Value(Value::String(s))),
 			Token::NumLit(s) => match s.parse() {
 				Ok(a) => Ok(Reach::Value(Value::i32(a))),
@@ -35,6 +48,14 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 					Err(f32err) => return Err(Error::InvalidNumLit { f32err, i32err }),
 				},
 			},
+			Token::Brackets(b) => {
+				// array literal
+				let parser = Parser::from_iter(b.into_iter().map(Ok)).comma_separated_expressions();
+				let elements = parser.collect::<Result<Vec<_>, _>>().with_context(|| {
+					format!("while parsing expressions inside an array literal")
+				})?;
+				Ok(Reach::ArrayLiteral(elements))
+			}
 			Token::Fn => {
 				let parens = self.iter.next().ok_or(Error::ExpectedFnDeclParens)??;
 				if let Token::Parens(parens) = parens {
@@ -67,13 +88,6 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 					)
 				})?;
 				Ok(Reach::Expr(Box::new(expr)))
-			}
-			Token::Brackets(b) => {
-				let parser = Parser::from_iter(b.into_iter().map(Ok)).comma_separated_expressions();
-				let elements = parser.collect::<Result<Vec<_>, _>>().with_context(|| {
-					format!("while parsing expressions inside an array literal")
-				})?;
-				Ok(Reach::ArrayLiteral(elements))
 			}
 			_ => unimplemented!("{a:?} as reach"),
 		}
@@ -291,6 +305,9 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 	pub fn comma_separated_expressions(self) -> ParserCSE<I> {
 		ParserCSE { parser: self }
 	}
+	pub fn object(self) -> ParserObj<I> {
+		ParserObj { parser: self }
+	}
 }
 
 pub struct ParserStatements<I: Iterator<Item = Result<Token>> + Clone> {
@@ -321,5 +338,54 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Iterator for ParserCSE<I> {
 			Err(Error::EOFReach) => None,
 			els => Some(els),
 		}
+	}
+}
+
+pub struct ParserObj<I: Iterator<Item = Result<Token>> + Clone> {
+	parser: Parser<I>,
+}
+impl<I: Iterator<Item = Result<Token>> + Clone> Iterator for ParserObj<I> {
+	type Item = Result<(String, Expr)>;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let name = match self.parser.iter.next()? {
+			Ok(Token::Ident(name) | Token::StrLit(name)) => name,
+			Ok(Token::NumLit(name)) => name,
+			Err(err) => {
+				return Some(Err(
+					err.with_context(format!("while parsing an object literal"))
+				));
+			}
+			Ok(_) => return Some(Err(Error::ExpectedIdentObj)),
+		};
+
+		let colon = self.parser.iter.next();
+		match colon {
+			Some(Ok(Token::Colon)) => {
+				// yippee
+			}
+			_ => {
+				return Some(Err(match colon {
+					None => Error::ExpectedColonObj(None),
+					Some(Ok(t)) => Error::ExpectedColonObj(Some(t)),
+					Some(Err(err)) => err.with_context(format!(
+						"while trying to parse a colon in an object literal"
+					)),
+				}));
+			}
+		}
+
+		let val = self
+			.parser
+			.read_expr()
+			.with_context(|| format!("while parsing an object literal"));
+		let val = match val {
+			Ok(a) => a,
+			Err(err) => return Some(Err(err)),
+		};
+
+		// all of this just so we can read key-value pairs fml
+
+		Some(Ok((name, val)))
 	}
 }

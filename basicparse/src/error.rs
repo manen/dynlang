@@ -29,6 +29,11 @@ pub enum Error {
 	#[error("expected something after ident in statement")]
 	ExpectedSthAfterIdent,
 
+	#[error("expected ident, string literal, or number literal in object literal definition")]
+	ExpectedIdentObj,
+	#[error("expected colon in object literal, got: {0:?}")]
+	ExpectedColonObj(Option<Token>),
+
 	#[error("invalid number literal, couldn't parse as i32 or f32")]
 	InvalidNumLit {
 		i32err: ParseIntError,
