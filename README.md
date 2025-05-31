@@ -27,7 +27,9 @@ this would allow us to define builtin functions and shit which is pretty useful 
 
 ## see
 
-[fib_cond.dl](/fib_cond.dl) is a recursive implementation of a fibonacci generator \
+[fib_cond.dl](/fib_cond.dl) is a recursive implementation of a fibonacci generator
+
+[iter.dl](/iter.dl) is an extensible iterator system \
 that's the most impressive for now
 
 try out for yourself:

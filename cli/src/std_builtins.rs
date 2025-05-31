@@ -34,7 +34,19 @@ fn len_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
 	builder.new_fn("len", len)
 }
 
+fn to_string_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
+	fn to_string(val: IValue) -> IValue {
+		IValue::String(format!("{val}"))
+	}
+	builder.new_fn("to_string", to_string)
+}
+
 pub fn builtins() -> impl Iterator<Item = BuiltinFn> {
 	let mut builder = BuiltinBuilder::default();
-	[print_builtin(&mut builder), len_builtin(&mut builder)].into_iter()
+	[
+		print_builtin(&mut builder),
+		len_builtin(&mut builder),
+		to_string_builtin(&mut builder),
+	]
+	.into_iter()
 }

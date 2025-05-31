@@ -1,0 +1,48 @@
+"this will only work if you've previously imported fib_cond.dl and iter.dl"
+
+let slow_fib_iter = fn() {
+	let inc = iter.increment()
+	iter.map([inc fib])
+}
+
+let fast_fib_iter = fn() {
+	let base = fn() {
+		let m1 = 0
+		let m2 = 1
+
+		obj {
+			len: fn() { 47 }
+			next: fn() {
+				let now = m1 + m2
+				m2 = m1
+				m1 = now
+				now
+			}
+		}
+	}
+
+	iter.chain([iter.once(0) base()])
+}
+
+let print_as_they_come = fn(iter) {
+	let none = if 1 == 2 {}
+
+	let i = 0
+
+	loop {
+		let next = iter.next()
+		if next == none {
+			break
+		} else {
+			builtins.print(builtins.to_string(i) + ": " + builtins.to_string(next))
+			i = i + 1
+		}
+	}
+}
+
+let print_slow_fib = fn() {
+	print_as_they_come(slow_fib_iter())
+}
+let print_fast_fib = fn() {
+	print_as_they_come(fast_fib_iter())
+}

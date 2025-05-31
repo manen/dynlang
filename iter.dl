@@ -39,6 +39,27 @@ let iter = obj {
 			}
 		}
 	}
+	repeat: fn(val_times) {
+		let val = val_times.0
+		let times = val_times.1
+
+		let i = 0
+
+		obj {
+			len: fn() {
+				times
+			}
+			next: fn() {
+				if i < times {
+					i = i + 1
+					val
+				}
+			}
+		}
+	}
+	once: fn(val) {
+		iter.repeat([val 1])
+	}
 	increment: fn() {
 		let n = 0
 
@@ -74,7 +95,53 @@ let iter = obj {
 			}
 		}
 	}
+	map: fn(iter_fn) {
+		let iter = iter_fn.0
+		let f = iter_fn.1
 
+		obj {
+			len: iter.len
+			next: fn() {
+				f(iter.next())
+			}
+		}
+	}
+	chain: fn(a_b) {
+		let none = if 1 == 2 { 4 }
+
+		let a = a_b.0
+		let b = a_b.1
+
+		obj {
+			len: fn() {
+				a.len() + b.len()
+			}
+			next: fn() {
+				let a_next = a.next()
+				if a_next == none {
+					b.next()
+				} else {
+					a_next
+				}
+			}
+		}
+	}
+
+	for_each: fn(iter_fn) {
+		let none = if 0 == 1 { 69 }
+
+		let iter = iter_fn.0
+		let f = iter_fn.1
+
+		loop {
+			let next = iter.next()
+			if next == none {
+				break
+			} else {
+				f(next)
+			}
+		}
+	}
 	collect: fn(iter) {
 		let none = if 0 == 1 { 69 }
 
