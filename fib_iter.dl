@@ -27,6 +27,18 @@ let fast_fib_iter = fn() {
 let print_as_they_come = fn(iter) {
 	let none = if 1 == 2 {}
 
+	loop {
+		let next = iter.next()
+		if next == none {
+			break
+		} else {
+			builtins.print(next)
+		}
+	}
+}
+let print_as_they_come_i = fn(iter) {
+	let none = if 1 == 2 {}
+
 	let i = 0
 
 	loop {
@@ -41,8 +53,8 @@ let print_as_they_come = fn(iter) {
 }
 
 let print_slow_fib = fn() {
-	print_as_they_come(slow_fib_iter())
+	print_as_they_come_i(slow_fib_iter())
 }
 let print_fast_fib = fn() {
-	print_as_they_come(fast_fib_iter())
+	print_as_they_come_i(fast_fib_iter())
 }

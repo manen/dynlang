@@ -1,25 +1,34 @@
 use interpret::{BuiltinBuilder, BuiltinFn, IValue};
 use langlib::Value;
 
-fn print_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
-	fn print(value: IValue) -> IValue {
-		match value {
-			IValue::Value(Value::bool(a)) => println!("{a}"),
-			IValue::Value(Value::i32(a)) => println!("{a}"),
-			IValue::Value(Value::f32(a)) => println!("{a}"),
-			IValue::Value(Value::String(a)) => println!("{a}"),
-			IValue::Value(Value::Array(a)) => println!("{a:?}"),
-			IValue::Value(Value::Object(a)) => println!("{a:?}"),
-			IValue::Value(a) => println!("{a:?}"),
+fn print_noln(value: IValue) -> IValue {
+	match value {
+		IValue::Value(Value::bool(a)) => print!("{a}"),
+		IValue::Value(Value::i32(a)) => print!("{a}"),
+		IValue::Value(Value::f32(a)) => print!("{a}"),
+		IValue::Value(Value::String(a)) => print!("{a}"),
+		IValue::Value(Value::Array(a)) => print!("{a:?}"),
+		IValue::Value(Value::Object(a)) => print!("{a:?}"),
+		IValue::Value(a) => print!("{a:?}"),
 
-			IValue::Object(a) => println!("{a:?}"),
-			IValue::Array(a) => println!("{a:?}"),
+		IValue::Object(a) => print!("{a:?}"),
+		IValue::Array(a) => print!("{a:?}"),
 
-			_ => println!("{value:?}"),
-		}
-		IValue::None()
+		_ => print!("{value:?}"),
 	}
+	IValue::None()
+}
+fn print(value: IValue) -> IValue {
+	let ret = print_noln(value);
+	println!();
+	ret
+}
+
+fn print_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
 	builder.new_fn("print", print)
+}
+fn print_noln_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
+	builder.new_fn("print_noln", print_noln)
 }
 
 fn len_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
@@ -90,6 +99,7 @@ pub fn builtins() -> impl Iterator<Item = BuiltinFn> {
 	builder
 		.build_fns([
 			print_builtin,
+			print_noln_builtin,
 			len_builtin,
 			to_string_builtin,
 			obj_keys,
