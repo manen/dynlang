@@ -19,6 +19,16 @@ let iter = obj {
 			}
 		}
 	}
+	from_obj: fn(obj) {
+		let keys = builtins.obj_keys(obj)
+
+		iter.map([
+			iter.from_array(keys)
+			fn(key) {
+				[key obj.[key]]
+			}
+		])
+	}
 	from_range: fn(from_to) {
 		let from = from_to.0
 		let to = from_to.1
@@ -125,6 +135,10 @@ let iter = obj {
 				}
 			}
 		}
+	}
+
+	protect: fn(this) {
+		iter.take([this this.len()])
 	}
 
 	for_each: fn(iter_fn) {

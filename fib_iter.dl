@@ -11,7 +11,7 @@ let fast_fib_iter = fn() {
 		let m2 = 1
 
 		obj {
-			len: fn() { 47 }
+			len: fn() { 46 }
 			next: fn() {
 				let now = m1 + m2
 				m2 = m1

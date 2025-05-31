@@ -203,6 +203,13 @@ impl BuiltinBuilder {
 		self.id += 1;
 		builtin
 	}
+
+	pub fn build_fns(
+		&mut self,
+		iter: impl IntoIterator<Item = fn(&mut Self) -> BuiltinFn>,
+	) -> Vec<BuiltinFn> {
+		iter.into_iter().map(|f| f(self)).collect()
+	}
 }
 
 #[derive(Clone, Debug, PartialEq)]

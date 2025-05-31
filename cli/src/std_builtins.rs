@@ -41,12 +41,59 @@ fn to_string_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
 	builder.new_fn("to_string", to_string)
 }
 
+fn obj_keys(builder: &mut BuiltinBuilder) -> BuiltinFn {
+	fn obj_keys(val: IValue) -> IValue {
+		macro_rules! implementation {
+			($obj:expr) => {{ $obj.keys().cloned().map(IValue::String).collect() }};
+		}
+		let keys: Vec<_> = match val {
+			IValue::Object(obj) => implementation!(obj),
+			IValue::Value(Value::Object(obj)) => implementation!(obj),
+			_ => {
+				return IValue::Value(Value::String(
+					"value passed to builtin obj_keys fn isn't an object".into(),
+				));
+			}
+		};
+		IValue::Array(keys)
+	}
+	builder.new_fn("obj_keys", obj_keys)
+}
+
+fn obj_merge(builder: &mut BuiltinBuilder) -> BuiltinFn {
+	fn obj_merge(val: IValue) -> IValue {
+		let (a, b) = match val {
+			IValue::Array(arr) if arr.len() == 2 => {
+				let mut arr = arr.into_iter();
+				(arr.next().unwrap(), arr.next().unwrap())
+			}
+			_ => {
+				return IValue::String(format!(
+					"invalid argument to obj_merge: expected an array with two object elements"
+				));
+			}
+		};
+		match (a, b) {
+			(IValue::Object(a), IValue::Object(b)) => {
+				IValue::Object(a.into_iter().chain(b).collect())
+			}
+			_ => IValue::String(format!(
+				"invalid arguments to obj_merge: expected both arguments to be objects"
+			)),
+		}
+	}
+	builder.new_fn("obj_merge", obj_merge)
+}
+
 pub fn builtins() -> impl Iterator<Item = BuiltinFn> {
 	let mut builder = BuiltinBuilder::default();
-	[
-		print_builtin(&mut builder),
-		len_builtin(&mut builder),
-		to_string_builtin(&mut builder),
-	]
-	.into_iter()
+	builder
+		.build_fns([
+			print_builtin,
+			len_builtin,
+			to_string_builtin,
+			obj_keys,
+			obj_merge,
+		])
+		.into_iter()
 }
