@@ -6,8 +6,10 @@ use std::{
 
 use anyhow::Context as _;
 use basicparse::{Parser, preproc};
-use interpret::Context;
+use interpret::{Context, IValue};
 use langlib::{Block, Statement, Value};
+
+mod std_builtins;
 
 fn main() {
 	let mut args = env::args();
@@ -65,10 +67,10 @@ fn parse(src: &str) -> basicparse::Result<Vec<Statement>> {
 
 	Ok(parsed)
 }
-fn eval(src: &str) -> anyhow::Result<Value> {
+fn eval(src: &str) -> anyhow::Result<IValue> {
 	let parsed = parse(src)?;
 
-	let mut ctx = interpret::Context::new([]);
+	let mut ctx = interpret::Context::new::<IValue, _>([]);
 	ctx.builtins(std_builtins::builtins());
 	ctx.exec(parsed).with_context(|| "execution failed")
 }

@@ -3,11 +3,14 @@ use std::{cell::RefCell, collections::HashMap, fmt::Display, rc::Rc};
 mod error;
 pub use error::*;
 
+mod val;
+pub use val::*;
+
 use langlib::*;
 
 #[derive(Clone, Debug, Default)]
 pub struct ContextData {
-	variables: HashMap<String, Value>,
+	variables: HashMap<String, IValue>,
 }
 #[derive(Clone, Debug, Default)]
 pub struct Context {
@@ -15,10 +18,10 @@ pub struct Context {
 }
 
 impl Context {
-	pub fn new<I: IntoIterator<Item = (String, Value)>>(variables: I) -> Self {
+	pub fn new<V: Into<IValue>, I: IntoIterator<Item = (String, V)>>(variables: I) -> Self {
 		let variables = variables.into_iter();
 		let data = ContextData {
-			variables: variables.collect(),
+			variables: variables.map(|(k, v)| (k, v.into())).collect(),
 		};
 		Self {
 			ctx: vec![Rc::new(RefCell::new(data))],
@@ -30,9 +33,9 @@ impl Context {
 		// }
 		let map = builtins
 			.into_iter()
-			.map(|b| (b.name().to_string(), Value::Builtin(b)))
+			.map(|b| (b.name().to_string(), IValue::Builtin(b)))
 			.collect();
-		self.set_variable("builtins".into(), Value::Object(map));
+		self.set_variable("builtins".into(), IValue::Object(map));
 	}
 
 	/// clones itself and appends a new context window to the list (making newly created variables automatically get placed in the new context window)
@@ -51,7 +54,7 @@ impl Context {
 		self.ctx.iter().map(|a| a.borrow().variables.len()).sum()
 	}
 	/// iterate over every variable available
-	pub fn for_variables(&self, mut f: impl FnMut(&String, &Value)) {
+	pub fn for_variables(&self, mut f: impl FnMut(&String, &IValue)) {
 		for ctx in &self.ctx {
 			let ctx = ctx.borrow();
 			for (name, val) in &ctx.variables {
@@ -59,7 +62,7 @@ impl Context {
 			}
 		}
 	}
-	pub fn get_variable(&self, name: &str) -> Result<Value> {
+	pub fn get_variable(&self, name: &str) -> Result<IValue> {
 		for ctx in self.ctx.iter().rev() {
 			let ctx = ctx.borrow();
 			if let Some(here) = ctx.variables.get(name) {
@@ -72,7 +75,8 @@ impl Context {
 		))
 	}
 	/// returns the previous value
-	pub fn modify_variable(&self, name: &str, val: Value) -> Result<Value> {
+	pub fn modify_variable(&self, name: &str, val: impl Into<IValue>) -> Result<IValue> {
+		let val = val.into();
 		for ctx in self.ctx.iter().rev() {
 			let mut ctx = ctx.borrow_mut();
 			if let Some(_) = ctx.variables.get(name) {
@@ -88,7 +92,8 @@ impl Context {
 		))
 	}
 	/// appends the new variable to the topmost context window, creating one if none exist
-	pub fn set_variable(&mut self, name: String, val: Value) {
+	pub fn set_variable(&mut self, name: String, val: impl Into<IValue>) {
+		let val = val.into();
 		if self.ctx.len() == 0 {
 			let data = ContextData {
 				variables: [(name, val)].into_iter().collect(),
@@ -107,9 +112,9 @@ impl Context {
 		a.variables.insert(name, val);
 	}
 
-	pub fn resolve_reach(&self, r: &Reach) -> Result<Value> {
+	pub fn resolve_reach(&self, r: &Reach) -> Result<IValue> {
 		match r {
-			Reach::Value(val) => Ok(val.clone()),
+			Reach::Value(val) => Ok(val.clone().into()),
 			Reach::Expr(expr) => self.resolve_expr(expr),
 			Reach::Named(name) => self.get_variable(name),
 
@@ -119,18 +124,18 @@ impl Context {
 					let val = self.resolve_expr(expr)?;
 					values.push(val);
 				}
-				Ok(Value::Array(values))
+				Ok(IValue::Array(values))
 			}
 			Reach::ObjectLiteral(obj) => {
 				let mut values = HashMap::with_capacity(obj.len());
 				for (name, expr) in obj {
 					values.insert(name.clone(), self.resolve_expr(expr)?);
 				}
-				Ok(Value::Object(values))
+				Ok(IValue::Object(values))
 			}
 		}
 	}
-	pub fn resolve_expr(&self, expr: &Expr) -> Result<Value> {
+	pub fn resolve_expr(&self, expr: &Expr) -> Result<IValue> {
 		match expr {
 			Expr::Reach(r) => self.resolve_reach(r),
 			Expr::Block(block) => {
@@ -158,7 +163,7 @@ impl Context {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(Value::bool(a.custom_eq(&b)))
+				Ok(IValue::Value(Value::bool(a.custom_eq(&b))))
 			}
 			Expr::Gt(a, b) => {
 				let a = self.resolve_reach(a)?;
@@ -176,18 +181,18 @@ impl Context {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(Value::bool(a.is_true() || b.is_true()))
+				Ok(IValue::Value(Value::bool(a.is_true() || b.is_true())))
 			}
 			Expr::And(a, b) => {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(Value::bool(a.is_true() && b.is_true()))
+				Ok(IValue::Value(Value::bool(a.is_true() && b.is_true())))
 			}
 			Expr::CallFn { f, args } => {
 				let f = self.resolve_reach(f)?;
 				match f {
-					Value::Function(f) => {
+					IValue::Value(Value::Function(f)) => {
 						let args = args.clone().map(|reach| self.resolve_reach(&reach));
 						let args = if let Some(args) = args {
 							Some(args?)
@@ -197,13 +202,13 @@ impl Context {
 
 						self.call_fn(&f, args)
 					}
-					Value::Builtin(d) if d.f().is_some() => {
+					IValue::Builtin(d) if d.f().is_some() => {
 						let f = d.f().expect("we just made sure it's some");
 						let args = args.clone().map(|a| self.resolve_reach(&a));
 						let args = if let Some(args) = args {
 							args?
 						} else {
-							Value::None
+							IValue::None()
 						};
 
 						Ok(f(args))
@@ -230,7 +235,7 @@ impl Context {
 
 	/// runs the given block as-is. does not isolate context at all so unless you wanna leak
 	/// internal variables you should probably use `context.clone().resolve_block()`
-	pub fn resolve_block(&mut self, block: &Block) -> Result<Value> {
+	pub fn resolve_block(&mut self, block: &Block) -> Result<IValue> {
 		let len = block.0.len();
 		for (i, stmt) in block.iter().enumerate() {
 			let last = i == len - 1;
@@ -262,10 +267,10 @@ impl Context {
 				}
 			}
 		}
-		Ok(Value::None)
+		Ok(IValue::Value(Value::None))
 	}
 	/// safely calls the given function
-	pub fn call_fn(&self, f: &Function, args: Option<Value>) -> Result<Value> {
+	pub fn call_fn(&self, f: &Function, args: Option<IValue>) -> Result<IValue> {
 		let mut ctx = self.push_context();
 		match (&f.arg_name, args) {
 			(Some(name), Some(val)) => {
@@ -279,7 +284,7 @@ impl Context {
 	}
 
 	/// use for debugging only
-	pub fn exec<I: IntoIterator<Item = Statement>>(&mut self, block: I) -> Result<Value> {
+	pub fn exec<I: IntoIterator<Item = Statement>>(&mut self, block: I) -> Result<IValue> {
 		self.resolve_block(&Block(block.into_iter().collect()))
 	}
 }

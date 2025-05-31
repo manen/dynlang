@@ -3,9 +3,6 @@ use std::collections::HashMap;
 
 pub use func::*;
 
-mod builtin;
-pub use builtin::*;
-
 #[derive(Clone, Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum Value {
@@ -18,7 +15,6 @@ pub enum Value {
 	Function(Function),
 	Object(HashMap<String, Value>),
 
-	Builtin(DynBuiltin),
 	None,
 }
 impl Value {

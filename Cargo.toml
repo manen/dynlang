@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [ "interpret","langlib", "basicparse", "readuntil_ext", "cli", "std_builtins"]
+members = [ "interpret","langlib", "basicparse", "readuntil_ext", "cli"]
 
 [workspace.dependencies]
 langlib.path = "./langlib"
@@ -8,7 +8,6 @@ interpret.path = "./interpret"
 
 readuntil_ext.path = "./readuntil_ext"
 basicparse.path = "./basicparse"
-std_builtins.path = "./std_builtins"
 
 iter_read_until = { git = "https://github.com/manen/puzzle", version = "0.1.0" }
 

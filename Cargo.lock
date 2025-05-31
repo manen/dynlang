@@ -26,7 +26,6 @@ dependencies = [
  "basicparse",
  "interpret",
  "langlib",
- "std_builtins",
 ]
 
 [[package]]
@@ -70,13 +69,6 @@ version = "0.1.0"
 dependencies = [
  "iter_read_until",
  "thiserror",
-]
-
-[[package]]
-name = "std_builtins"
-version = "0.1.0"
-dependencies = [
- "langlib",
 ]
 
 [[package]]

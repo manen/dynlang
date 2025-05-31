@@ -1,8 +1,8 @@
-use interpret::Context;
+use interpret::{Context, IValue};
 use langlib::{Expr, Function, Reach, Statement, Value};
 
 fn main() {
-	let out = Context::new([]).exec(
+	let out = Context::new::<IValue, _>([]).exec(
 		[
 			Statement::SetVariable(
 				"num".into(),

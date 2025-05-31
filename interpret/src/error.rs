@@ -6,17 +6,17 @@ pub enum Error {
 	VariableDoesntExist(String, VariableAccessType),
 
 	#[error("attempted invalid addition operation {a:?} + {b:?}")]
-	InvalidAddition { a: Value, b: Value },
+	InvalidAddition { a: IValue, b: IValue },
 	#[error("attempted invalid subtraction operation {a:?} - {b:?}")]
-	InvalidSubtraction { a: Value, b: Value },
+	InvalidSubtraction { a: IValue, b: IValue },
 	#[error("attempted invalid greater than operation {a:?} > {b:?}")]
-	InvalidGt { a: Value, b: Value },
+	InvalidGt { a: IValue, b: IValue },
 	#[error("attempted invalid less than operation {a:?} < {b:?}")]
-	InvalidLt { a: Value, b: Value },
+	InvalidLt { a: IValue, b: IValue },
 	#[error("invalid indexing of value: {a:?}.{i:?}")]
-	InvalidIndex { a: Value, i: Index },
+	InvalidIndex { a: IValue, i: Index },
 	#[error("attempted to call a variable that isn't a function: {0:?}")]
-	NotAFunction(Value),
+	NotAFunction(IValue),
 
 	#[error("missing argument to function: expected arg {0}")]
 	MissingArg(String),
