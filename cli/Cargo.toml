@@ -8,3 +8,4 @@ langlib.workspace = true
 basicparse.workspace = true
 interpret.workspace = true
 anyhow = "1.0.98"
+rustyline = "16.0.0"

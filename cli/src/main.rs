@@ -8,10 +8,11 @@ use anyhow::{Context as _, anyhow};
 use basicparse::{Parser, ResultExt, preproc};
 use interpret::{Context, IValue};
 use langlib::{Block, Statement, Value};
+use rustyline::DefaultEditor;
 
 mod std_builtins;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
 	let mut args = env::args();
 	args.next();
 
@@ -22,17 +23,27 @@ fn main() {
 		let file = fs::read_to_string(&path).unwrap();
 		let out = eval(&file);
 		println!("{out:?}");
+		Ok(())
 	} else {
+		let history_path = "./.history.txt";
+
+		let mut rl = DefaultEditor::new()?;
+		if rl.load_history(history_path).is_err() {
+			eprintln!("no previous history")
+		}
+
 		eprintln!(
 			"welcome to dynlang repl\nuse .import <file path> to import .dl files into the context\n"
 		);
 
 		let mut ctx = Context::default();
 		ctx.builtins(std_builtins::builtins());
-		loop {
-			print!(" > ");
-			io::stdout().flush().unwrap();
-			let line = io::stdin().lines().next().unwrap().unwrap();
+		let a = loop {
+			let line = match rl.readline(" > ") {
+				Ok(a) => a,
+				Err(err) => break Err(err),
+			};
+			rl.add_history_entry(&line)?;
 
 			let line = if line.starts_with(".import ") {
 				let path = line.replace(".import ", "");
@@ -55,7 +66,9 @@ fn main() {
 				},
 				Err(err) => eprintln!("failed to parse: {err}"),
 			}
-		}
+		};
+		rl.save_history(history_path)?;
+		a?
 	}
 }
 
