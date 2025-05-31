@@ -68,11 +68,23 @@ impl IValue {
 	}
 
 	pub fn index(&self, i: &Index) -> Option<Self> {
-		match (self, i) {
+		let base = match (self, i) {
 			(IValue::Value(v), i) => v.index(i).map(IValue::Value),
 			(IValue::Object(obj), i) => obj.get(&i.clone().into_str()).map(Clone::clone),
 			(IValue::Array(a), Index::NumLit(i)) => a.iter().cloned().nth(*i as _),
+
 			_ => None,
+		};
+		if let Some(base) = base {
+			return Some(base);
+		} else {
+			match (self, i) {
+				(val, Index::Ident(ident)) if ident == "len" => {
+					let len = utils::len(val);
+					len.map(|a| IValue::i32(a as _))
+				}
+				_ => None,
+			}
 		}
 	}
 
@@ -111,6 +123,29 @@ impl IValue {
 		}
 	}
 }
+impl Display for IValue {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			IValue::Value(value) => write!(f, "{value}"),
+			IValue::Object(hash_map) => {
+				write!(f, "obj {{")?;
+				for (k, v) in hash_map {
+					write!(f, " {k}: {v} ")?;
+				}
+				write!(f, "}}")
+			}
+			IValue::Array(ivalues) => {
+				write!(f, "[")?;
+				for val in ivalues {
+					write!(f, " {val}")?;
+				}
+				write!(f, " ]")
+			}
+			IValue::Builtin(dyn_builtin) => write!(f, "{dyn_builtin}"),
+			IValue::Closure(closure) => write!(f, "{}", closure.f()),
+		}
+	}
+}
 
 use std::borrow::Cow;
 
@@ -131,6 +166,11 @@ impl DynBuiltin {
 	}
 	pub fn f(&self) -> Option<fn(IValue) -> IValue> {
 		self.f
+	}
+}
+impl Display for DynBuiltin {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "[builtin {}]", self.name)
 	}
 }
 
@@ -160,6 +200,13 @@ pub struct Closure {
 	f: Function,
 }
 impl Closure {
+	pub fn ctx(&self) -> &Context {
+		&self.ctx
+	}
+	pub fn f(&self) -> &Function {
+		&self.f
+	}
+
 	pub fn call(&mut self, args: Option<IValue>) -> Result<IValue> {
 		self.ctx.call_fn(&self.f, args)
 	}

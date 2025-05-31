@@ -1,4 +1,9 @@
-use std::{cell::RefCell, collections::HashMap, fmt::Display, rc::Rc};
+use std::{
+	cell::RefCell,
+	collections::HashMap,
+	fmt::{Debug, Display},
+	rc::Rc,
+};
 
 mod error;
 pub use error::*;
@@ -6,13 +11,15 @@ pub use error::*;
 mod val;
 pub use val::*;
 
+pub mod utils;
+
 use langlib::*;
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct ContextData {
 	variables: HashMap<String, IValue>,
 }
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Context {
 	ctx: Vec<Rc<RefCell<ContextData>>>,
 }
@@ -313,7 +320,7 @@ impl Display for Context {
 			for ctx in &self.ctx {
 				let ctx = ctx.borrow();
 				for (name, val) in &ctx.variables {
-					write!(f, " {name}: {val:?},")?;
+					write!(f, " {name}: {val},")?;
 				}
 			}
 			write!(f, " ]")
@@ -322,10 +329,15 @@ impl Display for Context {
 			for ctx in &self.ctx {
 				let ctx = ctx.borrow();
 				for (name, val) in &ctx.variables {
-					writeln!(f, "  {name}: {val:?}")?;
+					writeln!(f, "  {name}: {val}")?;
 				}
 			}
 			write!(f, "]")
 		}
+	}
+}
+impl Debug for Context {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		Display::fmt(self, f)
 	}
 }

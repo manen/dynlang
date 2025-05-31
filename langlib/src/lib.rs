@@ -1,5 +1,5 @@
 mod func;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 pub use func::*;
 
@@ -98,6 +98,32 @@ impl Value {
 			(Value::i32(a), Value::f32(b)) => Some(Self::bool((*a as f32) < (*b))),
 			(Value::f32(a), Value::i32(b)) => Some(Self::bool(*a < *b as f32)),
 			_ => None,
+		}
+	}
+}
+impl Display for Value {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Value::bool(b) => write!(f, "{b}"),
+			Value::i32(a) => write!(f, "{a}"),
+			Value::f32(a) => write!(f, "{a}"),
+			Value::String(a) => write!(f, "{a:?}"),
+			Value::Object(hash_map) => {
+				write!(f, "obj {{")?;
+				for (k, v) in hash_map {
+					write!(f, "  {k}: {v}")?;
+				}
+				write!(f, "}}")
+			}
+			Value::Array(ivalues) => {
+				write!(f, "[")?;
+				for val in ivalues {
+					write!(f, " {val}")?;
+				}
+				write!(f, " ]")
+			}
+			Value::Function(func) => write!(f, "{func}"),
+			Value::None => write!(f, "None"),
 		}
 	}
 }

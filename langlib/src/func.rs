@@ -35,3 +35,8 @@ impl Function {
 		Self { arg_name, block }
 	}
 }
+impl Display for Function {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "fn({})", self.arg_name.as_deref().unwrap_or(""))
+	}
+}

@@ -22,7 +22,19 @@ fn print_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
 	builder.new("print", Some(print))
 }
 
+fn len_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
+	fn len(val: IValue) -> IValue {
+		let len = interpret::utils::len(&val);
+		if let Some(len) = len {
+			IValue::i32(len as _)
+		} else {
+			IValue::None()
+		}
+	}
+	builder.new("len", Some(len))
+}
+
 pub fn builtins() -> impl Iterator<Item = DynBuiltin> {
 	let mut builder = DynBuiltinBuilder::default();
-	[print_builtin(&mut builder)].into_iter()
+	[print_builtin(&mut builder), len_builtin(&mut builder)].into_iter()
 }

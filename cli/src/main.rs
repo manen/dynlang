@@ -50,7 +50,7 @@ fn main() {
 
 			match parse(&line) {
 				Ok(parsed) => match ctx.resolve_block(&Block(parsed)) {
-					Ok(a) => println!("{a:?}"),
+					Ok(a) => println!("{a}"),
 					Err(err) => eprintln!("failed to execute: {err}"),
 				},
 				Err(err) => eprintln!("failed to parse: {err}"),

@@ -5,11 +5,16 @@ an iterator is just a plain object that has:
 "
 
 let iter_from_array = fn(array) {
-	"
-	for this to work we need:
-	- .len index on strings, arrays, maybe objects
-	- actual working closures so context fix
-	"
+	let i = 0
+
+	obj {
+		len: fn() {
+			array.len
+		}
+		next: fn() {
+			array "ok i just realized you can only access arrays when the index is hardcoded that kinda sucks"
+		}
+	}
 }
 
 let iter_from_range = fn(from_to) {
@@ -32,4 +37,12 @@ let iter_from_range = fn(from_to) {
 			}
 		}
 	}
+}
+
+let array_from_iter = fn(iter) {
+	let none = if 0 == 1 { 69 }
+
+	let arr = []
+
+	"loops would be nice finally cause a function like this just can't be recursive"
 }
