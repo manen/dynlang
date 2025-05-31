@@ -91,6 +91,9 @@ impl IValue {
 	pub fn add(&self, rhs: &Self) -> Option<Self> {
 		match (self, rhs) {
 			(IValue::Value(a), IValue::Value(b)) => a.add(b).map(IValue::Value),
+			(IValue::Array(a), IValue::Array(b)) => {
+				Some(IValue::Array(a.iter().chain(b.iter()).cloned().collect()))
+			}
 			_ => None,
 		}
 	}

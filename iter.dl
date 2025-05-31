@@ -45,5 +45,14 @@ let array_from_iter = fn(iter) {
 
 	let arr = []
 
-	"loops would be nice finally cause a function like this just can't be recursive"
+	loop {
+		let next = iter.next()
+		if next == none {
+			break
+		} else {
+			arr = arr + [next]
+		}
+	}
+
+	arr
 }

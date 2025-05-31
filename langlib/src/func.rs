@@ -4,10 +4,16 @@ use crate::*;
 pub enum Statement {
 	ModifyVariable(String, Expr),
 	SetVariable(String, Expr),
+	/// doesn't really behave like you'd expect to but it's fine (there's literally no way
+	/// to even make an explicit return statement if using basicparse so it's fine)
 	Return(Expr),
 	/// executes the expr and does nothing with the output value \
 	/// UNLESS! if it's the last instruction in a block, then it gets returned
 	Expr(Expr),
+
+	/// loops over the given block until broken out with break
+	Loop(Block),
+	Break,
 
 	/// debug
 	DumpContext,

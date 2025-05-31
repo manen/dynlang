@@ -44,6 +44,10 @@ pub enum Token {
 	If,
 	/// `else`
 	Else,
+	/// `loop`
+	Loop,
+	/// `break`
+	Break,
 
 	/// `||`
 	Or,
@@ -183,6 +187,8 @@ impl<'a> Tokenizer<'a> {
 			"fn" => Ok(Token::Fn),
 			"if" => Ok(Token::If),
 			"else" => Ok(Token::Else),
+			"loop" => Ok(Token::Loop),
+			"break" => Ok(Token::Break),
 			"||" => Ok(Token::Or),
 			"&&" => Ok(Token::And),
 			ident => {

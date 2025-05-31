@@ -277,6 +277,17 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 					return Err(Error::ExpectedVariableName);
 				}
 			}
+			Token::Loop => {
+				self.iter.next();
+				let b = self
+					.read_block()
+					.with_context(|| format!("while reading loop block"))?;
+				return Ok(Statement::Loop(b));
+			}
+			Token::Break => {
+				self.iter.next();
+				return Ok(Statement::Break);
+			}
 			_ => {}
 		}
 

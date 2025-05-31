@@ -271,7 +271,9 @@ impl Context {
 	}
 
 	/// runs the given block as-is. does not isolate context at all so unless you wanna leak
-	/// internal variables you should probably use `context.clone().resolve_block()`
+	/// internal variables you should probably use `context.clone().resolve_block()` \
+	///
+	/// if break is called it'll return Err(Error::Break) make sure to catch that
 	pub fn resolve_block(&mut self, block: &Block) -> Result<IValue> {
 		let len = block.0.len();
 		for (i, stmt) in block.iter().enumerate() {
@@ -296,6 +298,15 @@ impl Context {
 					return Ok(val);
 				}
 
+				Statement::Loop(block) => loop {
+					let out = self.resolve_block(block);
+					match out {
+						Err(Error::Break) => break,
+						a => a?,
+					};
+				},
+				Statement::Break => return Err(Error::Break),
+
 				Statement::DumpContext => {
 					println!("{}", self);
 				}
@@ -306,6 +317,7 @@ impl Context {
 		}
 		Ok(IValue::Value(Value::None))
 	}
+
 	/// safely calls the given function
 	pub fn call_fn(&self, f: &Function, args: Option<IValue>) -> Result<IValue> {
 		let mut ctx = self.push_context();
