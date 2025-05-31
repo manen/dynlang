@@ -6,31 +6,38 @@ only interpreted for now because that's easier
 
 ## currently implemented
 
-- strings
-- numbers (i32 & f32)
+- variables (int, float, string, array, object)
 - functions with input & output args
-- variables
-- context (variables defined at a smaller scope will cease to exist once that scope is left)[*](#closures)
-- boolean logic (<, >, ==, ||, &&)
 - conditional execution & conditional expressions
+- boolean logic (<, >, ==, ||, &&)
+- closures, context switching
+- unconditional loops (with `break`), for loops
+- [iterators, iterator helper functions](/iter.dl)
 
-## theoretically supported but not implemented
+and:
 
-- arrays (it's in the language and a value can be an array there's just no way to define or index one)
+- a flexible [builtin system](/interpret/src/val.rs#L189) that lets you call external rust functions from anywhere in the code
+- a couple of [basic builtins](/cli/src/std_builtins.rs) already
 
-## should be supported and implemented
+so on paper you can build anything you want really
 
-- finally decouple what the interpreter thinks is a function and `langlib::Function`[*](#closures) \
-this would allow us to define builtin functions and shit which is pretty useful (and we could start doing some more interesting stuff)
+## story
 
-- order of operations (you can manually order your operations with parens in the meanwhile but ehhh still)
+i kinda got bored and developing this was pretty fun i've made attempts to build programming languages in the past but somehow in a couple days i far surpassed any demo language i've built
+
+it basically pretty much works which is really suprising \
+but obviously there are many things that aren't implemented just yet and this language is in no way intended for real world production usage
+but whatever is implemented is pretty cool
 
 ## see
 
-[fib_cond.dl](/fib_cond.dl) is a recursive implementation of a fibonacci generator
+[`fib_cond.dl`](/fib_cond.dl) is a recursive implementation of fibonacci
 
-[iter.dl](/iter.dl) is an extensible iterator system \
-that's the most impressive for now
+[`iter.dl`](/iter.dl) is an extensible iterator system (it'll feel familiar if you've used rust's)
+
+[`fib_iter.dl`](/fib_iter.dl) is a fibonacci implementation on top of the iterator system, with a slow iterator using [the recursive fibonacci implementation](/fib_cond.dl), and a fast iterator that uses closures and two internal variables to calculate the next result
+
+---
 
 try out for yourself:
 
@@ -49,9 +56,3 @@ cargo run -p cli path_to_file.dl
 ```
 
 to run a standalone file
-
-### closures
-
-closures don't really work if they capture variables because we only pass the function as a value and we don't package any other information with it (like the variables it's using from outer scopes)
-
-okay the way to this probably is to introduce a new Value variant that's just a function and the context it needs but i kinda need to rethink how contexts should even work cause right now [functions have access to variables they shouldn't even know about](/contexts-are-broken.dl)

@@ -1,13 +1,9 @@
-use std::{
-	env, fs,
-	io::{self, Write},
-	path::PathBuf,
-};
+use std::{env, fs, path::PathBuf};
 
 use anyhow::{Context as _, anyhow};
-use basicparse::{Parser, ResultExt, preproc};
+use basicparse::{Parser, preproc};
 use interpret::{Context, IValue};
-use langlib::{Block, Statement, Value};
+use langlib::{Block, Statement};
 use rustyline::DefaultEditor;
 
 mod std_builtins;

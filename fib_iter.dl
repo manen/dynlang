@@ -34,6 +34,7 @@ let print_as_they_come_i = fn(iter) {
 
 	for a in iter {
 		builtins.print(builtins.to_string(i) + ": " + builtins.to_string(a))
+		i = i + 1
 	}
 }
 

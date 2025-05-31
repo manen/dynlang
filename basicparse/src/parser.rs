@@ -1,8 +1,7 @@
-use std::{iter::Peekable, marker::PhantomData};
+use std::iter::Peekable;
 
 use crate::*;
 
-use iter_read_until::{IntoReader, Reader};
 use langlib::{Block, Expr, Function, Index, IntoIndex, Reach, Statement, Value};
 
 #[derive(Clone, Debug)]
