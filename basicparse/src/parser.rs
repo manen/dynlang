@@ -3,7 +3,7 @@ use std::{iter::Peekable, marker::PhantomData};
 use crate::*;
 
 use iter_read_until::{IntoReader, Reader};
-use langlib::{Block, Expr, Function, Index, Reach, Statement, Value};
+use langlib::{Block, Expr, Function, Index, IntoIndex, Reach, Statement, Value};
 
 #[derive(Clone, Debug)]
 pub struct Parser<I: Iterator<Item = Result<Token>>> {
@@ -123,8 +123,13 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 				})?;
 
 				let index = match b {
-					Reach::Named(name) => Index::Ident(name),
-					Reach::Value(Value::i32(i)) => Index::NumLit(i),
+					Reach::Named(name) => IntoIndex::Index(Index::Ident(name)),
+					Reach::Value(Value::i32(i)) => IntoIndex::Index(Index::NumLit(i)),
+					Reach::ArrayLiteral(arr) if arr.len() == 1 => IntoIndex::Expr(Box::new(
+						arr.into_iter()
+							.next()
+							.expect("we just checked there's at least one element"),
+					)),
 					_ => return Err(Error::InvalidIndex),
 				};
 

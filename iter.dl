@@ -9,10 +9,12 @@ let iter_from_array = fn(array) {
 
 	obj {
 		len: fn() {
-			array.len
+			array.len - i
 		}
 		next: fn() {
-			array "ok i just realized you can only access arrays when the index is hardcoded that kinda sucks"
+			let val = array.[i]
+			i = i + 1
+			val
 		}
 	}
 }
@@ -21,11 +23,10 @@ let iter_from_range = fn(from_to) {
 	let from = from_to.0
 	let to = from_to.1
 
-	let len = to - from
 	let n = from
 
 	obj {
-		len: fn() { len }
+		len: fn() { to - n }
 		next: fn() {
 			if n < to {
 				n = n + 1

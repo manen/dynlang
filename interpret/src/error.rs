@@ -20,6 +20,8 @@ pub enum Error {
 
 	#[error("missing argument to function: expected arg {0}")]
 	MissingArg(String),
+	#[error("invalid value generated from expression in .[] index brackets: {0:?}")]
+	InvalidExprFromIntoIndex(IValue),
 
 	#[error(
 		"impossible case: we checked if this variable existed before and it did, but when replacing it with a new value it turns out it didn't exist"

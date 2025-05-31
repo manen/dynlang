@@ -142,6 +142,19 @@ impl Context {
 			}
 		}
 	}
+	pub fn resolve_index(&self, index: IntoIndex) -> Result<Index> {
+		match index {
+			IntoIndex::Index(i) => Ok(i),
+			IntoIndex::Expr(expr) => {
+				let val = self.resolve_expr(expr.as_ref())?;
+				match val {
+					IValue::Value(Value::i32(i)) => Ok(Index::NumLit(i)),
+					IValue::Value(Value::String(s)) => Ok(Index::Ident(s)),
+					_ => Err(Error::InvalidExprFromIntoIndex(val)),
+				}
+			}
+		}
+	}
 	pub fn resolve_expr(&self, expr: &Expr) -> Result<IValue> {
 		match expr {
 			Expr::Reach(r) => self.resolve_reach(r),
@@ -151,7 +164,8 @@ impl Context {
 			}
 			Expr::Index(a, i) => {
 				let a = self.resolve_reach(a)?;
-				a.index(i)
+				let i = self.resolve_index(i.clone())?;
+				a.index(&i)
 					.ok_or_else(|| Error::InvalidIndex { a, i: i.clone() })
 			}
 			Expr::Add(a, b) => {

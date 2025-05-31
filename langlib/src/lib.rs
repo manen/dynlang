@@ -143,6 +143,12 @@ impl Index {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum IntoIndex {
+	Index(Index),
+	Expr(Box<Expr>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
 	Reach(Reach),
 	Block(Block),
@@ -150,7 +156,7 @@ pub enum Expr {
 	/// index something
 	/// so this is used for reaching into maps (like person.name)
 	/// and arrays too (like array.0)
-	Index(Reach, Index),
+	Index(Reach, IntoIndex),
 
 	// these return bools
 	Cmp(Reach, Reach),
