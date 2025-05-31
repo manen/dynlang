@@ -34,13 +34,13 @@ impl Context {
 			ctx: vec![Rc::new(RefCell::new(data))],
 		}
 	}
-	pub fn builtins<I: IntoIterator<Item = DynBuiltin>>(&mut self, builtins: I) {
+	pub fn builtins<I: IntoIterator<Item = BuiltinFn>>(&mut self, builtins: I) {
 		// for builtin in builtins {
 		// 	self.set_variable(builtin.name().to_owned().into(), Value::Builtin(builtin));
 		// }
 		let map = builtins
 			.into_iter()
-			.map(|b| (b.name().to_string(), IValue::Builtin(b)))
+			.map(|b| (b.name().to_string(), IValue::BuiltinFn(b)))
 			.collect();
 		self.set_variable("builtins".into(), IValue::Object(map));
 	}
@@ -230,8 +230,8 @@ impl Context {
 
 						self.call_fn(&f, args)
 					}
-					IValue::Builtin(d) if d.f().is_some() => {
-						let f = d.f().expect("we just made sure it's some");
+					IValue::BuiltinFn(d) => {
+						let f = d.f();
 						let args = args.clone().map(|a| self.resolve_reach(&a));
 						let args = if let Some(args) = args {
 							args?

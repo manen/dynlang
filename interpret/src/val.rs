@@ -9,7 +9,7 @@ pub enum IValue {
 	Object(HashMap<String, IValue>),
 	Array(Vec<IValue>),
 
-	Builtin(DynBuiltin),
+	BuiltinFn(BuiltinFn),
 	Closure(Closure),
 }
 impl IValue {
@@ -141,7 +141,7 @@ impl Display for IValue {
 				}
 				write!(f, " ]")
 			}
-			IValue::Builtin(dyn_builtin) => write!(f, "{dyn_builtin}"),
+			IValue::BuiltinFn(dyn_builtin) => write!(f, "{dyn_builtin}"),
 			IValue::Closure(closure) => write!(f, "{}", closure.f()),
 		}
 	}
@@ -150,41 +150,49 @@ impl Display for IValue {
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, PartialEq)]
-/// see [DynBuiltinBuilder]
-pub struct DynBuiltin {
+/// see [BuiltinBuilder]
+pub struct BuiltinFn {
 	id: u64,
 	name: Cow<'static, str>,
 
-	f: Option<fn(IValue) -> IValue>,
+	f: fn(IValue) -> IValue,
 }
-impl DynBuiltin {
+impl BuiltinFn {
 	pub fn id(&self) -> u64 {
 		self.id
 	}
 	pub fn name(&self) -> &Cow<'static, str> {
 		&self.name
 	}
-	pub fn f(&self) -> Option<fn(IValue) -> IValue> {
+	pub fn f(&self) -> fn(IValue) -> IValue {
 		self.f
 	}
 }
-impl Display for DynBuiltin {
+impl Display for BuiltinFn {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "[builtin {}]", self.name)
 	}
 }
 
+// #[derive(Clone, Debug, PartialEq)]
+// pub struct BuiltinObj {
+// 	id: u64,
+// 	name: Cow<'static, str>,
+
+// 	index: fn(Index) -> IValue,
+// }
+
 #[derive(Default)]
-pub struct DynBuiltinBuilder {
+pub struct BuiltinBuilder {
 	id: u64,
 }
-impl DynBuiltinBuilder {
-	pub fn new(
+impl BuiltinBuilder {
+	pub fn new_fn(
 		&mut self,
 		name: impl Into<Cow<'static, str>>,
-		f: Option<fn(IValue) -> IValue>,
-	) -> DynBuiltin {
-		let builtin = DynBuiltin {
+		f: fn(IValue) -> IValue,
+	) -> BuiltinFn {
+		let builtin = BuiltinFn {
 			id: self.id,
 			name: name.into(),
 			f,

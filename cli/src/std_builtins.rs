@@ -1,7 +1,7 @@
-use interpret::{DynBuiltin, DynBuiltinBuilder, IValue};
+use interpret::{BuiltinBuilder, BuiltinFn, IValue};
 use langlib::Value;
 
-fn print_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
+fn print_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
 	fn print(value: IValue) -> IValue {
 		match value {
 			IValue::Value(Value::bool(a)) => println!("{a}"),
@@ -19,10 +19,10 @@ fn print_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
 		}
 		IValue::None()
 	}
-	builder.new("print", Some(print))
+	builder.new_fn("print", print)
 }
 
-fn len_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
+fn len_builtin(builder: &mut BuiltinBuilder) -> BuiltinFn {
 	fn len(val: IValue) -> IValue {
 		let len = interpret::utils::len(&val);
 		if let Some(len) = len {
@@ -31,10 +31,10 @@ fn len_builtin(builder: &mut DynBuiltinBuilder) -> DynBuiltin {
 			IValue::None()
 		}
 	}
-	builder.new("len", Some(len))
+	builder.new_fn("len", len)
 }
 
-pub fn builtins() -> impl Iterator<Item = DynBuiltin> {
-	let mut builder = DynBuiltinBuilder::default();
+pub fn builtins() -> impl Iterator<Item = BuiltinFn> {
+	let mut builder = BuiltinBuilder::default();
 	[print_builtin(&mut builder), len_builtin(&mut builder)].into_iter()
 }
