@@ -158,7 +158,7 @@ pub struct BuiltinFn {
 	id: u64,
 	name: Cow<'static, str>,
 
-	f: fn(IValue) -> IValue,
+	f: fn(IValue) -> Result<IValue>,
 }
 impl BuiltinFn {
 	pub fn id(&self) -> u64 {
@@ -167,7 +167,7 @@ impl BuiltinFn {
 	pub fn name(&self) -> &Cow<'static, str> {
 		&self.name
 	}
-	pub fn f(&self) -> fn(IValue) -> IValue {
+	pub fn f(&self) -> fn(IValue) -> Result<IValue> {
 		self.f
 	}
 }
@@ -193,7 +193,7 @@ impl BuiltinBuilder {
 	pub fn new_fn(
 		&mut self,
 		name: impl Into<Cow<'static, str>>,
-		f: fn(IValue) -> IValue,
+		f: fn(IValue) -> Result<IValue>,
 	) -> BuiltinFn {
 		let builtin = BuiltinFn {
 			id: self.id,

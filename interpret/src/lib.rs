@@ -239,7 +239,7 @@ impl Context {
 							IValue::None()
 						};
 
-						Ok(f(args))
+						f(args)
 					}
 					IValue::Closure(mut cl) => {
 						let args = args.clone().map(|a| self.resolve_reach(&a));

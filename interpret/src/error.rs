@@ -2,6 +2,9 @@ use crate::*;
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum Error {
+	#[error("runtime error:\n{0}")]
+	Runtime(String),
+
 	#[error("attempted to {1} variable '{0}' that doesn't exist")]
 	VariableDoesntExist(String, VariableAccessType),
 
