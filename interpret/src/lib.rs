@@ -8,11 +8,11 @@ pub use val::*;
 
 use langlib::*;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ContextData {
 	variables: HashMap<String, IValue>,
 }
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Context {
 	ctx: Vec<Rc<RefCell<ContextData>>>,
 }
@@ -114,7 +114,7 @@ impl Context {
 
 	pub fn resolve_reach(&self, r: &Reach) -> Result<IValue> {
 		match r {
-			Reach::Value(val) => Ok(val.clone().into()),
+			Reach::Value(val) => Ok(IValue::from_safe(val.clone(), self)),
 			Reach::Expr(expr) => self.resolve_expr(expr),
 			Reach::Named(name) => self.get_variable(name),
 
@@ -163,7 +163,7 @@ impl Context {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(IValue::Value(Value::bool(a.custom_eq(&b))))
+				Ok(IValue::from_safe(Value::bool(a.custom_eq(&b)), self))
 			}
 			Expr::Gt(a, b) => {
 				let a = self.resolve_reach(a)?;
@@ -181,18 +181,25 @@ impl Context {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(IValue::Value(Value::bool(a.is_true() || b.is_true())))
+				Ok(IValue::from_safe(
+					Value::bool(a.is_true() || b.is_true()),
+					self,
+				))
 			}
 			Expr::And(a, b) => {
 				let a = self.resolve_reach(a)?;
 				let b = self.resolve_reach(b)?;
 
-				Ok(IValue::Value(Value::bool(a.is_true() && b.is_true())))
+				Ok(IValue::from_safe(
+					Value::bool(a.is_true() && b.is_true()),
+					self,
+				))
 			}
 			Expr::CallFn { f, args } => {
 				let f = self.resolve_reach(f)?;
 				match f {
 					IValue::Value(Value::Function(f)) => {
+						eprintln!("calling a function, not a closure");
 						let args = args.clone().map(|reach| self.resolve_reach(&reach));
 						let args = if let Some(args) = args {
 							Some(args?)
@@ -212,6 +219,15 @@ impl Context {
 						};
 
 						Ok(f(args))
+					}
+					IValue::Closure(mut cl) => {
+						let args = args.clone().map(|a| self.resolve_reach(&a));
+						let args = if let Some(args) = args {
+							Some(args?)
+						} else {
+							None
+						};
+						cl.call(args)
 					}
 					_ => Err(Error::NotAFunction(f)),
 				}

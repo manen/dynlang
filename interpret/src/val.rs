@@ -10,13 +10,30 @@ pub enum IValue {
 	Array(Vec<IValue>),
 
 	Builtin(DynBuiltin),
-}
-impl From<Value> for IValue {
-	fn from(value: Value) -> Self {
-		IValue::Value(value)
-	}
+	Closure(Closure),
 }
 impl IValue {
+	pub fn from_safe(value: Value, ctx: &Context) -> Self {
+		match value {
+			Value::Array(a) => {
+				IValue::Array(a.into_iter().map(|a| IValue::from_safe(a, ctx)).collect())
+			}
+			Value::Object(a) => IValue::Object(
+				a.into_iter()
+					.map(|(k, v)| (k, IValue::from_safe(v, ctx)))
+					.collect(),
+			),
+			Value::Function(f) => {
+				let cl = Closure {
+					ctx: ctx.push_context(),
+					f,
+				};
+				IValue::Closure(cl)
+			}
+			rest => IValue::Value(rest),
+		}
+	}
+
 	pub fn bool(val: bool) -> IValue {
 		IValue::Value(Value::bool(val))
 	}
@@ -134,5 +151,16 @@ impl DynBuiltinBuilder {
 		};
 		self.id += 1;
 		builtin
+	}
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Closure {
+	ctx: Context,
+	f: Function,
+}
+impl Closure {
+	pub fn call(&mut self, args: Option<IValue>) -> Result<IValue> {
+		self.ctx.call_fn(&self.f, args)
 	}
 }

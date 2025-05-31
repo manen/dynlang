@@ -4,8 +4,8 @@ use std::{
 	path::PathBuf,
 };
 
-use anyhow::Context as _;
-use basicparse::{Parser, preproc};
+use anyhow::{Context as _, anyhow};
+use basicparse::{Parser, ResultExt, preproc};
 use interpret::{Context, IValue};
 use langlib::{Block, Statement, Value};
 
@@ -72,5 +72,7 @@ fn eval(src: &str) -> anyhow::Result<IValue> {
 
 	let mut ctx = interpret::Context::new::<IValue, _>([]);
 	ctx.builtins(std_builtins::builtins());
-	ctx.exec(parsed).with_context(|| "execution failed")
+	ctx.exec(parsed)
+		.map_err(|err| anyhow!("{err}"))
+		.with_context(|| "execution failed")
 }
