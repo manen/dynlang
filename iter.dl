@@ -142,32 +142,18 @@ let iter = obj {
 	}
 
 	for_each: fn(iter_fn) {
-		let none = if 0 == 1 { 69 }
-
 		let iter = iter_fn.0
 		let f = iter_fn.1
 
-		loop {
-			let next = iter.next()
-			if next == none {
-				break
-			} else {
-				f(next)
-			}
+		for next in iter {
+			f(next)
 		}
 	}
 	collect: fn(iter) {
-		let none = if 0 == 1 { 69 }
-
 		let arr = []
 
-		loop {
-			let next = iter.next()
-			if next == none {
-				break
-			} else {
-				arr = arr + [next]
-			}
+		for next in iter {
+			arr = arr + [next]
 		}
 
 		arr

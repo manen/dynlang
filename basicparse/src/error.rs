@@ -33,6 +33,12 @@ pub enum Error {
 	ExpectedIdentObj,
 	#[error("expected colon in object literal, got: {0:?}")]
 	ExpectedColonObj(Option<Token>),
+	#[error("expected variable name after for keyword, got: {0:?}")]
+	ExpectedIdentFor(Option<Token>),
+	#[error("expected keyword `in` after variable name in for loop, got: {0:?}")]
+	ExpectedInFor(Option<Token>),
+	#[error("expected iterator after `in` keyword in for loop, got: {0:?}")]
+	ExpectedIterFor(Option<Token>),
 
 	#[error("invalid number literal, couldn't parse as i32 or f32")]
 	InvalidNumLit {

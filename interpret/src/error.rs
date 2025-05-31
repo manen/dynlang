@@ -29,6 +29,16 @@ pub enum Error {
 	#[error("break got called and nothing caught it apparently")]
 	/// this might not be the best solution cause it can travel through different contexts but i literally don't care
 	Break,
+	#[error(
+		"value passed into for loop is not an iterator: {0:?}\niterators are objects with methods (.next(), .len())"
+	)]
+	ForNotAnObject(IValue),
+	#[error(
+		"object passed into for loop is not an iterator: {0:?}\niterators are objects with methods (.next(), .len())"
+	)]
+	ForNotAnIterator(IValue),
+	#[error("object passed into for loop has a next propery, but it isn't a closure")]
+	ForNextIsntAClosure(IValue),
 
 	#[error(
 		"impossible case: we checked if this variable existed before and it did, but when replacing it with a new value it turns out it didn't exist"

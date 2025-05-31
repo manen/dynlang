@@ -14,6 +14,11 @@ pub enum Statement {
 	/// loops over the given block until broken out with break
 	Loop(Block),
 	Break,
+	LoopFor {
+		v_name: String,
+		iter: Expr,
+		block: Block,
+	},
 
 	/// debug
 	DumpContext,

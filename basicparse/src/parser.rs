@@ -288,6 +288,41 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 				self.iter.next();
 				return Ok(Statement::Break);
 			}
+			Token::For => {
+				self.iter.next();
+
+				let v_ident = self
+					.iter
+					.next()
+					.ok_or_else(|| Error::ExpectedIdentFor(None))??;
+				let v_name = match v_ident {
+					Token::Ident(name) => name,
+					other => return Err(Error::ExpectedIdentFor(Some(other))),
+				};
+
+				let in_token = self
+					.iter
+					.next()
+					.ok_or_else(|| Error::ExpectedInFor(None))??;
+				match in_token {
+					Token::In => {}
+					other => return Err(Error::ExpectedInFor(Some(other))),
+				}
+
+				let iter = self.read_expr().with_context(|| {
+					format!("as iterator in for loop with variable name {v_name:?}")
+				})?;
+
+				let block = self
+					.read_block()
+					.with_context(|| format!("in a for loop that uses variable name {v_name:?}"))?;
+
+				return Ok(Statement::LoopFor {
+					v_name,
+					iter,
+					block,
+				});
+			}
 			_ => {}
 		}
 

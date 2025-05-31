@@ -25,7 +25,7 @@ impl IValue {
 			),
 			Value::Function(f) => {
 				let cl = Closure {
-					ctx: ctx.push_context(),
+					ctx: ctx.push_window(),
 					f,
 				};
 				IValue::Closure(cl)

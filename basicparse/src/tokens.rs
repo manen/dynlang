@@ -38,30 +38,39 @@ fn token_letters(c: u8) -> Option<Signal> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
+	// --- keywords
 	/// `let`
 	Let,
+	/// `fn`
+	Fn,
+
 	/// `if`
 	If,
 	/// `else`
 	Else,
+
 	/// `loop`
 	Loop,
 	/// `break`
 	Break,
+	/// `for`
+	For,
+	/// `in`
+	In,
 
+	// -- treated as keywords too
 	/// `||`
 	Or,
 	/// `&&`
 	And,
 
+	// - signals
 	/// `.`
 	Dot,
 	/// `:`
 	Colon,
 	/// `=`
 	Eq,
-	/// `fn`
-	Fn,
 	/// `+`
 	Plus,
 	/// `-`
@@ -189,6 +198,8 @@ impl<'a> Tokenizer<'a> {
 			"else" => Ok(Token::Else),
 			"loop" => Ok(Token::Loop),
 			"break" => Ok(Token::Break),
+			"for" => Ok(Token::For),
+			"in" => Ok(Token::In),
 			"||" => Ok(Token::Or),
 			"&&" => Ok(Token::And),
 			ident => {
