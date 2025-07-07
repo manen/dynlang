@@ -32,7 +32,9 @@ impl Value {
 				let i = i.clone().into_str();
 				obj.get(&i).cloned()
 			}
-			(Value::Array(arr), Index::NumLit(i)) => arr.iter().nth(*i as _).cloned(),
+			(Value::Array(arr), Index::NumLit(i)) => {
+				Some(arr.iter().nth(*i as _).cloned().unwrap_or(Value::None))
+			}
 			_ => None,
 		}
 	}

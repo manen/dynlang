@@ -263,11 +263,9 @@ impl<I: Iterator<Item = Result<Token>> + Clone> Parser<I> {
 				if let Token::Ident(name) = name {
 					let eq = self.iter.next().ok_or(Error::ExpectedEqLet)??;
 					if let Token::Eq = eq {
-						let expr = self.read_expr().with_context(|| {
-							format!(
-								"failed to read value of variable while declaring variable {name}"
-							)
-						})?;
+						let expr = self
+							.read_expr()
+							.with_context(|| format!("while declaring variable {name}"))?;
 						return Ok(Statement::SetVariable(name, expr));
 					} else {
 						return Err(Error::ExpectedEqLet);

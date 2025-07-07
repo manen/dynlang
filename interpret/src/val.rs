@@ -71,7 +71,9 @@ impl IValue {
 		let base = match (self, i) {
 			(IValue::Value(v), i) => v.index(i).map(IValue::Value),
 			(IValue::Object(obj), i) => obj.get(&i.clone().into_str()).map(Clone::clone),
-			(IValue::Array(a), Index::NumLit(i)) => a.iter().cloned().nth(*i as _),
+			(IValue::Array(a), Index::NumLit(i)) => {
+				Some(a.iter().cloned().nth(*i as _).unwrap_or_else(IValue::None))
+			}
 
 			_ => None,
 		};

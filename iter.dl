@@ -140,6 +140,54 @@ let iter = obj {
 	protect: fn(this) {
 		iter.take([this this.len()])
 	}
+	flatten: fn(iter) {
+		let none = if 1 == 2 {}
+
+		let current = none
+
+		let next_from_new = fn() {
+			current = iter.next()
+			if current == none {
+				none
+			} else {
+				current.next()
+			}
+		}
+		let next_anywhere = fn() {
+			if current == none {
+				next_from_new()
+			} else {
+				let next = current.next()
+				if next == none {
+					next_from_new()
+				} else {
+					next
+				}
+			}
+		}
+		let next = fn() {
+			let none_c = 0
+			let next = none
+			loop {
+				let new = next_anywhere()
+				if new == none {
+					none_c = none_c + 1
+					if none_c > 5 {
+						break
+					}
+				} else {
+					next = new
+				}
+			}
+		}
+
+		obj {
+			len: fn () {
+				if 1 == 2 {}
+			}
+			next: next
+		}
+	}
 
 	for_each: fn(iter_fn) {
 		let iter = iter_fn.0
